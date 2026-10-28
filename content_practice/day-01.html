@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 1: API ที่เพิ่มและค้นข้อมูลได้</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+  <p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 1 จาก 16</p>
+  <h1>API ที่เพิ่มและค้นข้อมูลได้</h1>
+  <p class="goal">จบวันนี้ ทุกคนมีเซิร์ฟเวอร์ที่ดูรายชื่อผู้รับการประเมิน ค้นทีละคนด้วย id และเพิ่มคนใหม่ได้ ข้อมูลยังเก็บใน Array ไว้ก่อน พรุ่งนี้ค่อยย้ายลงฐานข้อมูล</p>
+  <div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+    <div>
+      <div class="who">ส่งจาก Thunder Client</div>
+<pre>POST /evaluatees
+{
+  "name": "วิภา ตั้งใจ",
+  "department": "บัญชี"
+}</pre>
+    </div>
+    <div>
+      <div class="who">เซิร์ฟเวอร์ตอบกลับ</div>
+<pre><span class="status">201 Created</span>
+{
+  "id": 2,
+  "name": "วิภา ตั้งใจ",
+  "department": "บัญชี"
+}</pre>
+    </div>
+  </div>
+</header>
+
+<section>
+  <h2>ตารางวันนี้</h2>
+  <ol class="schedule">
+    <li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมเรียงบรรทัดจากของเมื่อวาน</span></li>
+    <li><span class="min">25 นาที</span><span>เรื่องใหม่: Route ที่มี id, ข้อมูลที่ส่งมากับ POST, status code</span></li>
+    <li><span class="min">50 นาที</span><span>ทำตามทีละขั้น 4 ขั้น</span></li>
+    <li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li>
+    <li><span class="min">80 นาที</span><span>โจทย์ทำเอง: ตัวชี้วัด</span></li>
+    <li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li>
+    <li><span class="min">40 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li>
+  </ol>
+</section>
+
+<section id="game">
+  <h2>เกม: เรียงเซิร์ฟเวอร์ของเมื่อวาน</h2>
+  <p>ห้ามเปิด VS Code ดู แตะบรรทัดทางซ้ายเพื่อวางต่อท้ายโปรแกรมทางขวา แตะบรรทัดทางขวาเพื่อเอาคืน เรียงเสร็จแล้วกดตรวจ</p>
+  <div class="sheet">
+    <div class="game-cols">
+      <div>
+        <div class="zone-title">บรรทัดที่สลับไว้</div>
+        <div class="zone" id="pool"></div>
+      </div>
+      <div>
+        <div class="zone-title">โปรแกรมของฉัน</div>
+        <div class="zone" id="answer"></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="act" id="checkGame">ตรวจลำดับ</button>
+      <button class="act ghost" id="resetGame">สลับใหม่</button>
+    </div>
+    <div class="feedback" id="gameFb" aria-live="polite"></div>
+  </div>
+  <p>เรียงถูกแล้ว เปิด VS Code พิมพ์ตามลำดับนี้จากความจำ รัน แล้วเรียก <code>GET /health</code> ให้ได้ <code>{"status":"ok"}</code> ก่อนไปต่อ</p>
+</section>
+
+<section>
+  <h2>เรื่องใหม่วันนี้</h2>
+  <h3>Route ที่มีตัวแปร</h3>
+  <p><code>/evaluatees/:id</code> แปลว่าส่วนท้าย URL เป็นอะไรก็ได้ แล้วเราอ่านค่าได้จาก <code>req.params.id</code> ค่าที่ได้เป็นข้อความเสมอ เช่น <code>"2"</code> ไม่ใช่ตัวเลข 2</p>
+  <h3>ข้อมูลที่ส่งมากับ POST</h3>
+  <p>ข้อมูล JSON ที่ส่งมาอยู่ใน <code>req.body</code> แต่ Express จะอ่านให้ก็ต่อเมื่อมี <code>app.use(express.json())</code> อยู่ด้านบน</p>
+  <h3>Status code ที่ใช้วันนี้</h3>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>Code</th><th>ความหมาย</th><th>ใช้เมื่อ</th></tr></thead>
+    <tbody>
+      <tr><td><code>200</code></td><td>OK</td><td>ส่งข้อมูลที่ขอกลับไปได้</td></tr>
+      <tr><td><code>201</code></td><td>Created</td><td>สร้างข้อมูลใหม่สำเร็จ</td></tr>
+      <tr><td><code>404</code></td><td>Not Found</td><td>หาข้อมูลตาม id ไม่เจอ</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>ทำตามทีละขั้น</h2>
+  <p>ทำเสร็จหนึ่งขั้น ทดสอบใน Thunder Client ให้ผ่านก่อน แล้วค่อยไปขั้นถัดไป อย่าพิมพ์ครบแล้วค่อยรัน</p>
+
+  <div class="step"><div class="n">1</div><div>
+    <h3>เตรียม Array และให้ Express อ่าน JSON ได้</h3>
+    <p>เพิ่มต่อจาก <code>const app = express();</code></p>
+    <div class="code-wrap"><pre class="code">app.use(express.json());
+
+let evaluatees = [
+  { id: 1, name: 'สมชาย ใจดี', department: 'IT' }
+];
+let nextId = 2;</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> รันเซิร์ฟเวอร์ใหม่แล้วไม่มี error และ <code>/health</code> ยังใช้ได้</p>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div>
+    <h3>ดูรายชื่อทั้งหมด</h3>
+    <div class="code-wrap"><pre class="code">app.get('/evaluatees', (req, res) => {
+  res.json(evaluatees);
+});</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>GET /evaluatees</code> ได้ Array ที่มีสมชายหนึ่งคน</p>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div>
+    <h3>ค้นทีละคนด้วย id</h3>
+    <div class="code-wrap"><pre class="code">app.get('/evaluatees/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const found = evaluatees.find(e => e.id === id);
+  if (!found) {
+    return res.status(404).json({ message: 'ไม่พบผู้รับการประเมิน' });
+  }
+  res.json(found);
+});</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>GET /evaluatees/1</code> ได้สมชาย และ <code>GET /evaluatees/999</code> ได้ 404 พร้อมข้อความ</p>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div>
+    <h3>เพิ่มคนใหม่</h3>
+    <div class="code-wrap"><pre class="code">app.post('/evaluatees', (req, res) => {
+  const { name, department } = req.body;
+  const newOne = { id: nextId++, name, department };
+  evaluatees.push(newOne);
+  res.status(201).json(newOne);
+});</pre><button class="copy">คัดลอก</button></div>
+    <p>ใน Thunder Client เลือก Method เป็น POST แท็บ Body เลือก JSON แล้วใส่ข้อมูลแบบในตัวอย่างด้านบนสุด</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> POST แล้วได้ 201 พร้อม id ใหม่ จากนั้น <code>GET /evaluatees/2</code> เจอคนที่เพิ่งเพิ่ม</p>
+  </div></div>
+
+  <h3>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h3>
+  <details><summary>POST แล้ว error หรือ <code>req.body</code> ว่าง</summary>
+    <p>Express รู้ได้ยังไงว่าข้อมูลที่ส่งมาเป็น JSON</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>ดูบรรทัด <code>app.use(...)</code> ว่ามีหรือยัง และอยู่ก่อน Route ทั้งหมดหรือเปล่า</p></details>
+    <details><summary>คำใบ้ชั้นที่ 3</summary><p>ใน Thunder Client เช็กว่าแท็บ Body เลือก JSON ไม่ใช่ Text หรือ Form</p></details>
+  </details>
+  <details><summary>มีข้อมูลอยู่ แต่ค้นด้วย id แล้วได้ 404</summary>
+    <p>ลองใส่ <code>console.log(typeof req.params.id)</code> ใน Route แล้วดูผลใน terminal</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p><code>"1" === 1</code> ได้ผลเป็นอะไร</p></details>
+    <details><summary>คำใบ้ชั้นที่ 3</summary><p>แปลงด้วย <code>Number(req.params.id)</code> ก่อนนำไปเทียบ</p></details>
+  </details>
+  <details><summary>รันแล้วขึ้นว่า port 3000 ถูกใช้อยู่</summary>
+    <p>มีเซิร์ฟเวอร์ตัวเก่ารันค้างอยู่ หา terminal ที่รันอยู่แล้วกด Ctrl+C ก่อนรันใหม่</p>
+  </details>
+  <details><summary>แก้โค้ดแล้วผลไม่เปลี่ยน</summary>
+    <p>เซิร์ฟเวอร์ต้องรันใหม่ทุกครั้งที่แก้โค้ด หยุดด้วย Ctrl+C แล้วรันอีกรอบ</p>
+  </details>
+</section>
+
+<section>
+  <h2>โจทย์ทำเอง: ตัวชี้วัด</h2>
+  <p>สร้างข้อมูลชุดใหม่ชื่อ <code>indicators</code> ในไฟล์เดิม โดยปิดโค้ดตัวอย่างด้านบน เปิดดูได้เมื่อติดเกิน 10 นาทีเท่านั้น</p>
+  <div class="sheet">
+    <p>ตัวชี้วัดหนึ่งตัวมี <code>id</code>, <code>title</code> (ชื่อตัวชี้วัด) และ <code>weight</code> (น้ำหนักคะแนน)</p>
+    <div class="tbl">
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>ต้องได้</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/indicators</code></td><td>200 พร้อม Array ทั้งหมด</td></tr>
+        <tr><td>GET</td><td><code>/indicators/:id</code></td><td>200 ถ้าเจอ, 404 ถ้าไม่เจอ</td></tr>
+        <tr><td>POST</td><td><code>/indicators</code></td><td>201 พร้อมข้อมูลที่สร้าง</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="check"><strong>ท้าทายเพิ่ม</strong> ถ้า POST มาโดยไม่มี <code>title</code> ให้ตอบ 400 พร้อมข้อความบอกว่าขาดอะไร</p>
+  </div>
+  <p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p>
+</section>
+
+<section id="quiz">
+  <h2>ทายผลก่อนกดส่ง</h2>
+  <p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p>
+  <div id="quizBox"></div>
+</section>
+
+<section>
+  <h2>Exit Ticket</h2>
+  <p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนกดส่งเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
+  <div class="sheet ticket" id="ticket">
+    <label><input type="checkbox"><span>ผู้ตรวจ POST ตัวชี้วัดใหม่ แล้วได้ 201</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจ GET ด้วย id ของตัวที่เพิ่งเพิ่ม แล้วได้ข้อมูลถูกตัว</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจ GET ด้วย id 999 แล้วได้ 404</span></label>
+    <label><input type="checkbox"><span>เจ้าของอธิบายได้ว่าทำไมต้องใช้ <code>Number()</code> กับ id และข้อมูลหายไปไหนเมื่อหยุดเซิร์ฟเวอร์</span></label>
+    <div class="ticket-state" id="ticketState" aria-live="polite">ยังเหลือ 4 ข้อ</div>
+  </div>
+  <p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน จารย์จะสุ่มถามข้อสุดท้ายเพิ่มบางคน</p>
+  <p class="sub">พรุ่งนี้: ย้ายข้อมูลจาก Array ลง MySQL บน Docker ให้ปิดเซิร์ฟเวอร์แล้วข้อมูลยังอยู่</p>
+</section>
+
+</main>
+
+<script>
+// copy buttons
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+
+// reorder game
+const correct = [
+  "const express = require('express');",
+  "const app = express();",
+  "app.get('/health', (req, res) => {",
+  "  res.json({ status: 'ok' });",
+  "});",
+  "app.listen(3000, () => {",
+  "  console.log('Server running on port 3000');",
+  "});"
+];
+const hints = [
+  "บรรทัดแรกต้องนำ express เข้ามาก่อน ถึงจะใช้งานได้",
+  "ต้องสร้าง app ก่อนถึงจะกำหนด Route ได้",
+  "หลังสร้าง app แล้ว ค่อยเปิด Route /health",
+  "ข้างใน Route คือการตอบกลับ",
+  "Route ต้องปิดก่อนจะเริ่มคำสั่งถัดไป",
+  "สั่งให้เซิร์ฟเวอร์เริ่มฟังเป็นอย่างสุดท้าย",
+  "ข้างใน listen คือข้อความบอกว่าเซิร์ฟเวอร์เริ่มแล้ว",
+  "อย่าลืมปิดวงเล็บของ listen"
+];
+const pool = document.getElementById('pool');
+const answer = document.getElementById('answer');
+const fb = document.getElementById('gameFb');
+
+function chip(text){
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip'; b.textContent = text;
+  b.addEventListener('click', () => {
+    b.classList.remove('wrong','right');
+    (b.parentElement === pool ? answer : pool).appendChild(b);
+    fb.textContent = ''; fb.className = 'feedback';
+  });
+  return b;
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  if (a.every((t, i) => t === arr[i])) return shuffle(arr);
+  return a;
+}
+function resetGame(){
+  pool.innerHTML = ''; answer.innerHTML = '';
+  shuffle(correct).forEach(t => pool.appendChild(chip(t)));
+  fb.textContent = ''; fb.className = 'feedback';
+}
+document.getElementById('resetGame').addEventListener('click', resetGame);
+document.getElementById('checkGame').addEventListener('click', () => {
+  const placed = [...answer.children];
+  placed.forEach(c => c.classList.remove('wrong','right'));
+  if (placed.length < correct.length) {
+    fb.className = 'feedback bad';
+    fb.textContent = 'ยังวางไม่ครบ เหลืออีก ' + (correct.length - placed.length) + ' บรรทัด';
+    return;
+  }
+  const firstWrong = placed.findIndex((c, i) => c.textContent !== correct[i]);
+  if (firstWrong === -1) {
+    placed.forEach(c => c.classList.add('right'));
+    fb.className = 'feedback ok';
+    fb.textContent = 'เรียงถูกทั้งหมด ไปพิมพ์ใน VS Code แล้วรันได้เลย';
+    return;
+  }
+  placed.forEach((c, i) => { if (i < firstWrong) c.classList.add('right'); });
+  placed[firstWrong].classList.add('wrong');
+  fb.className = 'feedback bad';
+  fb.textContent = 'ถูกถึงบรรทัดที่ ' + firstWrong + ' บรรทัดที่ ' + (firstWrong + 1) + ' ยังไม่ใช่ คำใบ้: ' + hints[firstWrong];
+});
+resetGame();
+
+// quiz
+const quiz = [
+  { q: 'มีผู้รับการประเมิน id 1 กับ 2 อยู่ ส่ง GET /evaluatees/5 จะได้อะไร',
+    opts: ['200 พร้อม Array ว่าง', '404 พร้อมข้อความไม่พบผู้รับการประเมิน', 'เซิร์ฟเวอร์ดับ', '201 พร้อมข้อมูลใหม่'],
+    a: 1, why: 'find() หาไม่เจอจะได้ undefined แล้วเข้าเงื่อนไข if (!found) ซึ่งตอบ 404' },
+  { q: 'เรียก /evaluatees/2 แล้ว req.params.id มีค่าเป็นอะไร',
+    opts: ['ตัวเลข 2', 'ข้อความ "2"', 'undefined', '{ id: 2 }'],
+    a: 1, why: 'ค่าที่มาจาก URL เป็นข้อความเสมอ ต้องแปลงด้วย Number() ก่อนนำไปเทียบกับ id ที่เป็นตัวเลข' },
+  { q: 'POST เพิ่มคนไว้ 3 คน ข้อมูลจะหายไปเมื่อไหร่',
+    opts: ['ไม่หาย อยู่ตลอด', 'เมื่อหยุดเซิร์ฟเวอร์แล้วรันใหม่', 'เมื่อปิด Thunder Client', 'หลังผ่านไปหนึ่งชั่วโมง'],
+    a: 1, why: 'Array อยู่ในหน่วยความจำของโปรแกรม หยุดโปรแกรมเมื่อไหร่ก็หายหมด พรุ่งนี้เราจะแก้ด้วยฐานข้อมูล' }
+];
+const box = document.getElementById('quizBox');
+quiz.forEach((item, qi) => {
+  const wrap = document.createElement('div'); wrap.className = 'sheet q';
+  const p = document.createElement('p'); p.innerHTML = '<strong>' + (qi + 1) + '.</strong> ' + item.q; wrap.appendChild(p);
+  const opts = document.createElement('div'); opts.className = 'opts';
+  const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+  item.opts.forEach((o, oi) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+    b.addEventListener('click', () => {
+      [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+      if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+      else { b.classList.add('picked-bad'); why.textContent = 'ยังไม่ใช่ ลองคิดอีกที หรือลองส่งจริงบนเครื่องแล้วดูผล'; }
+    });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+});
+
+// exit ticket counter
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ 4 ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>

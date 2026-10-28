@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 2: ปิดเซิร์ฟเวอร์แล้วข้อมูลยังอยู่</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+/* day 2 extras */
+.blank{font:inherit; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; background:var(--sheet); color:var(--text); border:2px solid var(--ink); border-radius:4px; padding:1px 4px; margin:0 2px}
+.blank.ok{border-color:var(--ok)}
+.blank.bad{border-color:var(--bad)}
+pre.code.game{white-space:pre-wrap}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:12px 0}
+.flow span{background:var(--sheet); border:1px solid var(--ink); border-radius:4px; padding:4px 10px; font-size:15px}
+.flow em{font-style:normal; color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+  <p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 2 จาก 16</p>
+  <h1>ปิดเซิร์ฟเวอร์แล้วข้อมูลยังอยู่</h1>
+  <p class="goal">เมื่อวานข้อมูลหายทุกครั้งที่หยุดเซิร์ฟเวอร์ วันนี้ย้ายข้อมูลจาก Array ลง MySQL ที่รันบน Docker แล้วส่งโค้ดขึ้น GitLab เป็นครั้งแรก</p>
+  <div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+    <div>
+      <div class="who">หยุดเซิร์ฟเวอร์ รันใหม่ แล้วส่ง</div>
+<pre>GET /evaluatees/2</pre>
+    </div>
+    <div>
+      <div class="who">ยังได้คนเดิม เพราะมาจากฐานข้อมูล</div>
+<pre><span class="status">200 OK</span>
+{
+  "id": 2,
+  "name": "วิภา ตั้งใจ",
+  "department": "บัญชี"
+}</pre>
+    </div>
+  </div>
+</header>
+
+<section>
+  <h2>ตารางวันนี้</h2>
+  <ol class="schedule">
+    <li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมเติมโค้ดของเมื่อวาน</span></li>
+    <li><span class="min">25 นาที</span><span>เรื่องใหม่: Docker container, ตารางในฐานข้อมูล, async/await, Git</span></li>
+    <li><span class="min">50 นาที</span><span>ทำตามทีละขั้น 5 ขั้น</span></li>
+    <li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li>
+    <li><span class="min">80 นาที</span><span>โจทย์ทำเอง: ย้ายตัวชี้วัดลงฐานข้อมูล</span></li>
+    <li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li>
+    <li><span class="min">40 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li>
+  </ol>
+</section>
+
+<section id="game">
+  <h2>เกม: เติมโค้ดของเมื่อวาน</h2>
+  <p>ห้ามเปิดไฟล์เมื่อวานดู เลือกคำที่หายไปในแต่ละช่อง แล้วกดตรวจ</p>
+  <div class="sheet">
+<pre class="code game">app.get('/evaluatees/<select class="blank" data-a=":id"><option value="">?</option><option>id</option><option>:id</option><option>{id}</option></select>', (req, res) => {
+  const id = <select class="blank" data-a="Number"><option value="">?</option><option>String</option><option>Number</option><option>Boolean</option></select>(req.params.id);
+  const found = evaluatees.<select class="blank" data-a="find"><option value="">?</option><option>push</option><option>filter</option><option>find</option></select>(e => e.id === id);
+  if (!found) {
+    return res.<select class="blank" data-a="status"><option value="">?</option><option>status</option><option>send</option><option>code</option></select>(404).json({ message: 'ไม่พบ' });
+  }
+  res.json(found);
+});
+
+app.post('/evaluatees', (req, res) => {
+  const { name, department } = req.<select class="blank" data-a="body"><option value="">?</option><option>params</option><option>body</option><option>query</option></select>;
+  const newOne = { id: nextId++, name, department };
+  evaluatees.push(newOne);
+  res.status(<select class="blank" data-a="201"><option value="">?</option><option>200</option><option>201</option><option>404</option></select>).json(newOne);
+});</pre>
+    <div class="btns">
+      <button class="act" id="checkGame">ตรวจคำตอบ</button>
+      <button class="act ghost" id="resetGame">ล้างคำตอบ</button>
+    </div>
+    <div class="feedback" id="gameFb" aria-live="polite"></div>
+  </div>
+  <p>วันนี้เราจะเก็บโครง Route แบบนี้ไว้ทั้งหมด เปลี่ยนแค่ส่วนที่ค้นและเก็บข้อมูลจาก Array เป็นคำสั่ง SQL</p>
+</section>
+
+<section>
+  <h2>เรื่องใหม่วันนี้</h2>
+  <h3>เส้นทางของข้อมูล</h3>
+  <div class="flow"><span>Thunder Client</span><em>ส่ง</em><span>Express</span><em>เรียกผ่าน mysql2</em><span>MySQL ใน Docker</span><em>ตอบกลับทางเดิม</em></div>
+  <p>Express ไม่ได้เก็บข้อมูลเองแล้ว แค่ส่งคำสั่ง SQL ไปให้ MySQL แล้วรอผลกลับมา</p>
+  <h3>Docker container</h3>
+  <p>เหมือนกล่องที่มี MySQL ติดตั้งพร้อมใช้อยู่ข้างใน สั่งเปิด ปิด หรือลบได้ โดยไม่ต้องลง MySQL ลงเครื่องตรง ๆ ข้อมูลอยู่ในกล่องตราบที่ยังไม่ลบกล่อง</p>
+  <h3>async และ await</h3>
+  <p>การคุยกับฐานข้อมูลต้องรอผล Route ที่เรียกฐานข้อมูลต้องมี <code>async</code> ข้างหน้า และใส่ <code>await</code> หน้าคำสั่งที่ต้องรอ ถ้าลืม <code>await</code> จะได้ของที่ยังไม่เสร็จกลับมาแทนข้อมูล</p>
+  <h3>Git และ GitLab</h3>
+  <p>Git จดประวัติโค้ดในเครื่องเรา GitLab เป็นที่เก็บโค้ดกลางให้ทั้งทีมดึงไปใช้ วันแข่งต้องใช้ GitLab Server ทุกคนจึงต้องฝึกตั้งแต่วันนี้</p>
+</section>
+
+<section>
+  <h2>ทำตามทีละขั้น</h2>
+  <p>ทำเสร็จหนึ่งขั้น ตรวจให้ผ่านก่อนแล้วค่อยไปขั้นถัดไป</p>
+
+  <div class="step"><div class="n">1</div><div>
+    <h3>เปิด MySQL ใน Docker</h3>
+    <p>เปิด Docker Desktop ให้ทำงานก่อน แล้วรันใน terminal</p>
+    <div class="code-wrap"><pre class="code">docker run --name ltc-mysql -e MYSQL_ROOT_PASSWORD=root1234 -e MYSQL_DATABASE=evaluation -p 3306:3306 -d mysql:8.4</pre><button class="copy">คัดลอก</button></div>
+    <p>ครั้งแรกจะดาวน์โหลดนานหน่อย รอจนเสร็จแล้วเช็กด้วย <code>docker ps</code></p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>docker ps</code> เห็น <code>ltc-mysql</code> และคอลัมน์ STATUS ขึ้นว่า Up</p>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div>
+    <h3>สร้างตารางและใส่ข้อมูลแรก</h3>
+    <p>เข้าไปพิมพ์คำสั่งใน MySQL (รหัสผ่านคือ <code>root1234</code>)</p>
+    <div class="code-wrap"><pre class="code">docker exec -it ltc-mysql mysql -uroot -p --default-character-set=utf8mb4 evaluation</pre><button class="copy">คัดลอก</button></div>
+    <p>แล้ววางคำสั่ง SQL นี้</p>
+    <div class="code-wrap"><pre class="code">CREATE TABLE evaluatees (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  department VARCHAR(100)
+);
+
+INSERT INTO evaluatees (name, department) VALUES ('สมชาย ใจดี', 'IT');
+
+SELECT * FROM evaluatees;</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>SELECT</code> แล้วเห็นสมชายหนึ่งแถว ภาษาไทยไม่เป็นเครื่องหมายคำถาม พิมพ์ <code>exit</code> เพื่อออก</p>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div>
+    <h3>ต่อ Express เข้ากับฐานข้อมูล</h3>
+    <p>ติดตั้งตัวเชื่อมต่อในโฟลเดอร์โปรเจกต์</p>
+    <div class="code-wrap"><pre class="code">npm install mysql2</pre><button class="copy">คัดลอก</button></div>
+    <p>สร้างไฟล์ใหม่ชื่อ <code>db.js</code> ไว้ข้างไฟล์เซิร์ฟเวอร์</p>
+    <div class="code-wrap"><pre class="code">const mysql = require('mysql2/promise');
+
+const pool = mysql.createPool({
+  host: 'localhost',
+  port: 3306,
+  user: 'root',
+  password: 'root1234',
+  database: 'evaluation'
+});
+
+module.exports = pool;</pre><button class="copy">คัดลอก</button></div>
+    <p>ในไฟล์เซิร์ฟเวอร์ เพิ่มบรรทัดนี้ใต้ <code>const app = express();</code> แล้วลบ <code>let evaluatees = [...]</code> กับ <code>let nextId</code> ทิ้ง</p>
+    <div class="code-wrap"><pre class="code">const pool = require('./db');</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> รันเซิร์ฟเวอร์ได้โดยไม่มี error และ <code>/health</code> ยังใช้ได้</p>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div>
+    <h3>เปลี่ยน Route ให้อ่านเขียนจากฐานข้อมูล</h3>
+    <p>แทนที่ Route เดิมทั้งสามตัวด้วยชุดนี้ สังเกตว่าโครงเหมือนเมื่อวาน เปลี่ยนแค่ตรงกลาง</p>
+    <div class="code-wrap"><pre class="code">app.get('/evaluatees', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM evaluatees');
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดที่ฐานข้อมูล' });
+  }
+});
+
+app.get('/evaluatees/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM evaluatees WHERE id = ?',
+      [req.params.id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'ไม่พบผู้รับการประเมิน' });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดที่ฐานข้อมูล' });
+  }
+});
+
+app.post('/evaluatees', async (req, res) => {
+  try {
+    const { name, department } = req.body;
+    const [result] = await pool.query(
+      'INSERT INTO evaluatees (name, department) VALUES (?, ?)',
+      [name, department]
+    );
+    res.status(201).json({ id: result.insertId, name, department });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดที่ฐานข้อมูล' });
+  }
+});</pre><button class="copy">คัดลอก</button></div>
+    <p>เครื่องหมาย <code>?</code> คือช่องว่างที่ mysql2 จะเติมค่าจาก Array ให้อย่างปลอดภัย ห้ามเอาค่าที่ผู้ใช้ส่งมาต่อเป็นข้อความ SQL เอง</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> POST คนใหม่ได้ 201 แล้วหยุดเซิร์ฟเวอร์ รันใหม่ GET ด้วย id นั้นยังเจอ และ GET id 999 ได้ 404</p>
+  </div></div>
+
+  <div class="step"><div class="n">5</div><div>
+    <h3>ส่งโค้ดขึ้น GitLab</h3>
+    <p>สร้างไฟล์ <code>.gitignore</code> ในโฟลเดอร์โปรเจกต์ ใส่บรรทัดเดียว</p>
+    <div class="code-wrap"><pre class="code">node_modules</pre><button class="copy">คัดลอก</button></div>
+    <p>ถ้าเครื่องนี้ยังไม่เคยใช้ Git ให้ตั้งชื่อก่อนครั้งเดียว</p>
+    <div class="code-wrap"><pre class="code">git config --global user.name "ชื่อของเรา"
+git config --global user.email "อีเมลของเรา"</pre><button class="copy">คัดลอก</button></div>
+    <p>สร้าง project เปล่าบน GitLab ตามที่จารย์บอก คัดลอก URL ของ project มา แล้วรัน</p>
+    <div class="code-wrap"><pre class="code">git init
+git add .
+git commit -m "เก็บข้อมูลผู้รับการประเมินลง MySQL"
+git branch -M main
+git remote add origin URL_ของ_PROJECT
+git push -u origin main</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> เปิดหน้า project บน GitLab แล้วเห็นไฟล์ของเรา และไม่มีโฟลเดอร์ <code>node_modules</code></p>
+  </div></div>
+
+  <h3>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h3>
+  <details><summary>Error ขึ้นว่า <code>ECONNREFUSED</code></summary>
+    <p>Express ต่อ MySQL ไม่ติด ลองดูว่า container ยังทำงานอยู่ไหม</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>รัน <code>docker ps</code> ถ้าไม่เห็น <code>ltc-mysql</code> ให้ <code>docker start ltc-mysql</code> แล้วรอ 10–20 วินาทีให้ MySQL พร้อมก่อน</p></details>
+  </details>
+  <details><summary>Error ขึ้นว่า <code>ER_ACCESS_DENIED_ERROR</code></summary>
+    <p>รหัสผ่านใน <code>db.js</code> ตรงกับตอนสั่ง <code>docker run</code> หรือเปล่า</p>
+  </details>
+  <details><summary>Error ขึ้นว่าไม่มีตาราง <code>evaluatees</code></summary>
+    <p>ตารางถูกสร้างในฐานข้อมูลชื่อ <code>evaluation</code> จริงไหม</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>เข้า MySQL อีกรอบแล้วพิมพ์ <code>SHOW TABLES;</code> ถ้าไม่เห็น ให้กลับไปทำขั้นที่ 2 ใหม่ และดูว่า <code>database</code> ใน <code>db.js</code> สะกดตรงกัน</p></details>
+  </details>
+  <details><summary><code>docker run</code> แล้วบอกว่า port 3306 ถูกใช้อยู่</summary>
+    <p>เครื่องนี้มี MySQL อีกตัวรันอยู่แล้ว</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>ลบ container ที่สร้างไม่สำเร็จด้วย <code>docker rm ltc-mysql</code> แล้วรันใหม่โดยเปลี่ยนเป็น <code>-p 3307:3306</code> และแก้ <code>port: 3307</code> ใน <code>db.js</code></p></details>
+  </details>
+  <details><summary>ได้ข้อมูลแปลก ๆ หรือ <code>rows</code> เป็น undefined</summary>
+    <p>ดูว่ามี <code>await</code> หน้า <code>pool.query</code> หรือยัง และ Route มี <code>async</code> ข้างหน้าหรือเปล่า</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p><code>pool.query</code> ส่งกลับมาเป็น Array สองช่อง ช่องแรกคือข้อมูล จึงต้องเขียน <code>const [rows] =</code> มีวงเล็บเหลี่ยม</p></details>
+  </details>
+  <details><summary>ภาษาไทยในฐานข้อมูลเป็นเครื่องหมายคำถาม</summary>
+    <p>ตอนเข้า MySQL ลืมใส่ <code>--default-character-set=utf8mb4</code> ลบแถวนั้นแล้วเข้าใหม่พร้อมตัวเลือกนี้ ข้อมูลที่ POST ผ่าน Express จะไม่มีปัญหานี้</p>
+  </details>
+  <details><summary><code>git push</code> ถูกปฏิเสธหรือถามรหัสผ่าน</summary>
+    <p>เรียกจารย์ เรื่องสิทธิ์เข้า GitLab แก้จากฝั่ง project</p>
+  </details>
+</section>
+
+<section>
+  <h2>โจทย์ทำเอง: ย้ายตัวชี้วัดลงฐานข้อมูล</h2>
+  <p>เอา <code>/indicators</code> ที่ทำเมื่อวานมาเปลี่ยนให้ใช้ฐานข้อมูล ปิดโค้ดตัวอย่างไว้ เปิดดูได้เมื่อติดเกิน 10 นาทีเท่านั้น</p>
+  <div class="sheet">
+    <p>สร้างตาราง <code>indicators</code> มีคอลัมน์ <code>id</code> (เลขอัตโนมัติ), <code>title</code> (ข้อความ ห้ามว่าง) และ <code>weight</code> (ตัวเลข)</p>
+    <div class="tbl">
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>ต้องได้</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/indicators</code></td><td>200 พร้อมข้อมูลจากตาราง</td></tr>
+        <tr><td>GET</td><td><code>/indicators/:id</code></td><td>200 ถ้าเจอ, 404 ถ้าไม่เจอ</td></tr>
+        <tr><td>POST</td><td><code>/indicators</code></td><td>201 พร้อม id ที่ฐานข้อมูลสร้างให้</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>เสร็จแล้ว commit และ push ขึ้น GitLab อีกครั้ง</p>
+    <p class="check"><strong>ท้าทายเพิ่ม</strong> ถ้า POST มาโดยไม่มี <code>title</code> ให้ตอบ 400 ก่อนส่งคำสั่งไปฐานข้อมูล</p>
+  </div>
+  <p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p>
+</section>
+
+<section id="quiz">
+  <h2>ทายผลก่อนกดส่ง</h2>
+  <p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p>
+  <div id="quizBox"></div>
+</section>
+
+<section>
+  <h2>Exit Ticket</h2>
+  <p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนลงมือเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
+  <div class="sheet ticket" id="ticket">
+    <label><input type="checkbox"><span>ผู้ตรวจ POST ตัวชี้วัดใหม่ หยุดเซิร์ฟเวอร์ รันใหม่ แล้ว GET ยังเจอตัวนั้น</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจ GET <code>/indicators/999</code> แล้วได้ 404</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจสั่ง <code>docker stop ltc-mysql</code> แล้วเรียก API ได้ 500 พร้อมข้อความ เซิร์ฟเวอร์ไม่ดับ จากนั้น <code>docker start ltc-mysql</code> คืน</span></label>
+    <label><input type="checkbox"><span>เจ้าของเปิด GitLab ให้ดู commit ล่าสุด และไม่มี <code>node_modules</code></span></label>
+    <label><input type="checkbox"><span>เจ้าของอธิบายเส้นทางข้อมูลตั้งแต่กดส่งใน Thunder Client จนได้ผลกลับมาได้เอง</span></label>
+    <div class="ticket-state" id="ticketState" aria-live="polite">ยังเหลือ 5 ข้อ</div>
+  </div>
+  <p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน จารย์จะสุ่มถามข้อสุดท้ายเพิ่มบางคน</p>
+  <p class="sub">พรุ่งนี้: ทำหน้าเว็บด้วย Vue แสดงรายชื่อและฟอร์มเพิ่มข้อมูล เรียก API ที่ทำวันนี้</p>
+</section>
+
+</main>
+
+<script>
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+
+// fill-in game
+const blanks = [...document.querySelectorAll('.blank')];
+const fb = document.getElementById('gameFb');
+blanks.forEach(b => b.addEventListener('change', () => { b.classList.remove('ok','bad'); fb.textContent=''; fb.className='feedback'; }));
+document.getElementById('checkGame').addEventListener('click', () => {
+  let wrong = 0, empty = 0;
+  blanks.forEach(b => {
+    b.classList.remove('ok','bad');
+    if (!b.value) { empty++; return; }
+    if (b.value === b.dataset.a) b.classList.add('ok'); else { b.classList.add('bad'); wrong++; }
+  });
+  if (empty) { fb.className = 'feedback bad'; fb.textContent = 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ช่อง'; return; }
+  if (wrong) { fb.className = 'feedback bad'; fb.textContent = 'ผิด ' + wrong + ' ช่อง ช่องที่ขอบแดงลองคิดใหม่ ช่องขอบเขียวถูกแล้ว'; return; }
+  fb.className = 'feedback ok'; fb.textContent = 'ถูกทั้งหมด จำโครงนี้ไว้ วันนี้ใช้ต่อทั้งหมด';
+});
+document.getElementById('resetGame').addEventListener('click', () => {
+  blanks.forEach(b => { b.value = ''; b.classList.remove('ok','bad'); });
+  fb.textContent = ''; fb.className = 'feedback';
+});
+
+// quiz
+const quiz = [
+  { q: 'POST เพิ่มไว้ 3 คน แล้วหยุดเซิร์ฟเวอร์ Express รันใหม่ GET /evaluatees จะได้อะไร',
+    opts: ['Array ว่าง เหมือนเมื่อวาน', 'ยังเห็นทั้ง 3 คนพร้อมสมชาย', 'error 500', 'เห็นแค่สมชาย'],
+    a: 1, why: 'ข้อมูลอยู่ใน MySQL ไม่ได้อยู่ในหน่วยความจำของ Express แล้ว หยุด Express ไม่ทำให้ข้อมูลหาย' },
+  { q: 'ถ้าสั่ง docker stop ltc-mysql แล้วเรียก GET /evaluatees จะเกิดอะไร',
+    opts: ['ได้ข้อมูลตามปกติ', 'ได้ 404', 'ได้ 500 พร้อมข้อความเกิดข้อผิดพลาดที่ฐานข้อมูล', 'ได้ 201'],
+    a: 2, why: 'ต่อฐานข้อมูลไม่ได้จึงเกิด error แล้ว catch จับไว้และตอบ 500 เซิร์ฟเวอร์จึงไม่ดับ' },
+  { q: 'ทำไมใช้ ? แล้วส่งค่าเป็น Array แทนการต่อข้อความ SQL เอง',
+    opts: ['เพื่อให้โค้ดสั้นลงเท่านั้น', 'กันคนส่งข้อความที่เป็นคำสั่ง SQL มาแทรก และจัดการเครื่องหมายคำพูดให้เอง', 'เพราะ MySQL อ่าน + ไม่ได้', 'ทำให้ฐานข้อมูลเร็วขึ้นสิบเท่า'],
+    a: 1, why: 'เรียกว่าการป้องกัน SQL Injection กรรมการมักถามเรื่องนี้ ควรตอบได้ด้วยคำพูดของตัวเอง' },
+  { q: 'ทำไมต้องเขียน const [rows] = await pool.query(...) มีวงเล็บเหลี่ยม',
+    opts: ['เพราะผลที่ได้เป็น Array สองช่อง ช่องแรกคือข้อมูล', 'เพราะ rows เป็นคำสงวน', 'ไม่จำเป็น ใส่หรือไม่ใส่ก็เหมือนกัน', 'เพราะต้องการแค่แถวแรก'],
+    a: 0, why: 'pool.query ส่งกลับ [ข้อมูล, รายละเอียดคอลัมน์] วงเล็บเหลี่ยมคือการหยิบช่องแรกออกมา' }
+];
+const box = document.getElementById('quizBox');
+quiz.forEach((item, qi) => {
+  const wrap = document.createElement('div'); wrap.className = 'sheet q';
+  const p = document.createElement('p'); p.innerHTML = '<strong>' + (qi + 1) + '.</strong> ' + item.q; wrap.appendChild(p);
+  const opts = document.createElement('div'); opts.className = 'opts';
+  const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+  item.opts.forEach((o, oi) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+    b.addEventListener('click', () => {
+      [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+      if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+      else { b.classList.add('picked-bad'); why.textContent = 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล'; }
+    });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+});
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>

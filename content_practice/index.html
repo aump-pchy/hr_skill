@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตารางซ้อมแข่งระบบประเมินบุคลากร</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --line:#C9D6BF;
+  --p1:#A9C6EA; --p2:#9FD1B0; --p3:#F0C98A; --sim:#E39A8E; --rest:transparent;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --line:#34463B;
+    --p1:#33507A; --p2:#2F5C42; --p3:#6B5428; --sim:#7A3B33; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --line:#34463B;
+  --p1:#33507A; --p2:#2F5C42; --p3:#6B5428; --sim:#7A3B33; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:820px; margin:0 auto; padding:40px 20px 80px}
+h1{font-size:clamp(28px,5.5vw,42px); line-height:1.3; margin:0; color:var(--ink); font-weight:700}
+h2{font-size:24px; margin:48px 0 4px; color:var(--ink); line-height:1.3}
+p{margin:0 0 12px; max-width:68ch}
+.sub{color:var(--muted); font-size:16px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* calendar strip */
+.strip-wrap{overflow-x:auto; margin:24px 0 8px; padding-bottom:6px}
+.strip{display:grid; grid-template-columns:repeat(24, 40px); gap:4px; min-width:max-content}
+.cell{height:56px; border:1px solid var(--line); border-radius:4px; background:var(--sheet); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; line-height:1.2; color:var(--muted); text-decoration:none; position:relative}
+.cell b{font-size:16px; color:var(--text)}
+.cell.wk{background:transparent; border-style:dashed}
+.cell.ph1{background:var(--p1)} .cell.ph2{background:var(--p2)} .cell.ph3{background:var(--p3)}
+.cell.buf{background:var(--p1); background-image:repeating-linear-gradient(45deg,transparent 0 5px,var(--sheet) 5px 7px)}
+.cell.sim{background:var(--sim)}
+.cell.race{background:var(--ink); border-color:var(--ink)}
+.cell.race, .cell.race b{color:var(--paper)}
+.cell.today{outline:3px solid var(--mark); outline-offset:1px}
+.cell.past{opacity:.55}
+.legend{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:14px; color:var(--muted); margin-top:4px}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.legend i{width:14px; height:14px; border-radius:3px; border:1px solid var(--line); display:inline-block}
+
+/* session list */
+.phase-note{color:var(--muted); font-size:16px; margin-bottom:12px}
+.list{list-style:none; padding:0; margin:0; background:var(--sheet); border:1px solid var(--line); border-radius:6px; overflow:hidden}
+.row{display:grid; grid-template-columns:112px 1fr auto; gap:14px; align-items:center; padding:12px 16px; border-top:1px solid var(--line); border-left:5px solid transparent}
+.row:first-child{border-top:0}
+.row.ph1{border-left-color:var(--p1)} .row.ph2{border-left-color:var(--p2)} .row.ph3{border-left-color:var(--p3)}
+.row.sim{border-left-color:var(--sim)} .row.race{border-left-color:var(--ink)}
+.row.today{background:color-mix(in srgb, var(--mark) 22%, var(--sheet))}
+.date{font-size:15px; color:var(--muted); line-height:1.35}
+.date b{display:block; font-size:16px; color:var(--text)}
+.title{line-height:1.45}
+.title small{display:block; color:var(--muted); font-size:14px}
+.tag{display:inline-block; font-size:13px; font-weight:600; background:var(--mark); color:#2A2D29; padding:0 8px; border-radius:3px; margin-left:6px; vertical-align:2px}
+a.open{font-weight:600; text-decoration:none; color:var(--paper); background:var(--ink); padding:6px 14px; border-radius:5px; white-space:nowrap}
+a.open:hover{filter:brightness(1.1)}
+.soon{font-size:14px; color:var(--muted); white-space:nowrap}
+@media (max-width:560px){
+  .row{grid-template-columns:1fr auto; }
+  .row .date{grid-column:1 / -1}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="sub">ซ้อมแข่งทักษะการพัฒนาระบบประเมินบุคลากร</p>
+    <h1>ตารางซ้อมถึงวันแข่ง 20 พฤศจิกายน</h1>
+    <p class="sub" id="countdown"></p>
+    <div class="strip-wrap"><div class="strip" id="strip" aria-label="ปฏิทินซ้อมรายวัน"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--p1)"></i>ทำระบบเล็กครบวงจร</span>
+      <span><i style="background:var(--p2)"></i>แบ่งงานและรวมระบบ</span>
+      <span><i style="background:var(--sim)"></i>จำลองแข่งเต็มวัน</span>
+      <span><i style="background:var(--p3)"></i>แก้จุดช้าและเตรียมแข่ง</span>
+      <span><i style="background:var(--ink)"></i>วันแข่ง</span>
+    </div>
+    <p class="sub" style="margin-top:14px">ซ้อมหลังเลิกเรียนวันละ 4 ชั่วโมง แตะวันในปฏิทินหรือปุ่มในรายการเพื่อเปิดหน้าเรียนของวันนั้น</p>
+  </header>
+
+  <div id="phases"></div>
+</main>
+
+<script>
+// แก้ตารางที่นี่ที่เดียว  ready: true เมื่อสร้างไฟล์หน้าเรียนของวันนั้นแล้ว
+const sessions = [
+  { date:'2026-10-28', no:'1', phase:'ph1', title:'GET ด้วย id และ POST เก็บใน Array', file:'day-01.html', ready:true },
+  { date:'2026-10-29', no:'2', phase:'ph1', title:'MySQL บน Docker และ push ขึ้น GitLab', file:'day-02.html', ready:true },
+  { date:'2026-10-30', no:'3', phase:'ph1', title:'Vue หน้ารายชื่อและฟอร์มเรียก API', file:'day-03.html', ready:false },
+  { date:'2026-11-02', no:'4', phase:'ph1', title:'PUT, DELETE และ Validation', file:'day-04.html', ready:false },
+  { date:'2026-11-03', no:'5', phase:'ph1', title:'เข้ารหัสรหัสผ่านและ Login ด้วย JWT', file:'day-05.html', ready:false },
+  { date:'2026-11-04', no:'6', phase:'ph1', title:'ตรวจ token และสิทธิ์ตามบทบาท', file:'day-06.html', ready:false },
+  { date:'2026-11-05', no:'สำรอง', phase:'buf', title:'ทำระบบเล็กซ้ำจากศูนย์โดยปิดโค้ด', note:'จารย์ใช้ผลวันนี้ตัดสินบทบาทตัวจริง', file:'day-buffer.html', ready:false },
+  { date:'2026-11-06', no:'7', phase:'ph2', title:'ออกแบบร่วม: ฐานข้อมูล แผนภาพ เอกสาร API และโครง repo', file:'day-07.html', ready:false },
+  { date:'2026-11-09', no:'8', phase:'ph2', title:'งานชุดแรกของแต่ละคน', file:'day-08.html', ready:false },
+  { date:'2026-11-10', no:'9', phase:'ph2', title:'Upload หลักฐาน และให้คะแนนแบบร่าง', file:'day-09.html', ready:false },
+  { date:'2026-11-11', no:'10', phase:'ph2', title:'มอบหมายกรรมการ ประเมินตนเอง ยืนยันผล', note:'ต้องไหลครบวงจรทั้งสามกลุ่มผู้ใช้', file:'day-10.html', ready:false },
+  { date:'2026-11-12', no:'11', phase:'ph2', title:'ขึ้นเครื่องแม่ข่าย PDF สรุปผล และเช็กลิสต์คะแนนพื้นฐาน', file:'day-11.html', ready:false },
+  { date:'2026-11-13', no:'12', phase:'ph2', title:'คาบเบา: ตั้งระบบจากเครื่องเปล่าแล้วจับเวลา', note:'เลิกเร็ว เตรียมตัวสำหรับวันเสาร์', file:'day-12.html', ready:false },
+  { date:'2026-11-14', no:'เสาร์', phase:'sim', title:'จำลองแข่ง 09.00–15.00 น. พร้อมนำเสนอ', file:'simulation.html', ready:false },
+  { date:'2026-11-16', no:'13', phase:'ph3', title:'ทบทวนวันเสาร์ แล้วแก้จุดที่ช้าที่สุด', file:'day-13.html', ready:false },
+  { date:'2026-11-17', no:'14', phase:'ph3', title:'ฝึกโจทย์พิเศษ', note:'Dashboard, Backup/Restore, รายงาน, Download', file:'day-14.html', ready:false },
+  { date:'2026-11-18', no:'15', phase:'ph3', title:'ตั้งระบบและรวมงานแข่งกับเวลา ไล่เช็กลิสต์คะแนน', file:'day-15.html', ready:false },
+  { date:'2026-11-19', no:'16', phase:'ph3', title:'คาบเบา: ซ้อมนำเสนอและตอบคำถาม', note:'เลิกเร็ว พักผ่อนให้เต็มที่', file:'day-16.html', ready:false },
+  { date:'2026-11-20', no:'แข่ง', phase:'race', title:'วันแข่งขัน 09.00–15.00 น.', ready:false }
+];
+const phases = [
+  { key:['ph1','buf'], name:'ช่วงที่ 1: ทุกคนทำระบบเล็กครบวงจร', note:'ทั้ง 4 คนทำเองทุกคน คู่ซ้อมช่วยอ่านโค้ดได้แต่ห้ามพิมพ์แทน' },
+  { key:['ph2'], name:'ช่วงที่ 2: แบ่งงานและรวมระบบ', note:'ทุกครั้งปิดด้วยการ merge ขึ้น GitLab และรันทั้งระบบร่วมกันให้ได้' },
+  { key:['sim'], name:'จำลองแข่งเต็มวัน', note:'เริ่มจากเครื่องเปล่า ไม่มีเอกสาร ไม่มีโทรศัพท์ โจทย์ชุดใหม่ทั้งหมด' },
+  { key:['ph3'], name:'ช่วงที่ 3: แก้จุดช้าและเตรียมแข่ง', note:'ไม่เพิ่มเทคโนโลยีใหม่ เน้นทำซ้ำ แก้จุดติด และรวมงาน' },
+  { key:['race'], name:'วันแข่ง', note:'' }
+];
+
+const thDay = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+const thMon = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const pad = n => String(n).padStart(2,'0');
+const iso = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const todayIso = iso(new Date());
+const byDate = Object.fromEntries(sessions.map(s => [s.date, s]));
+
+// countdown
+const race = parse('2026-11-20');
+const now = parse(todayIso);
+const daysLeft = Math.round((race - now) / 86400000);
+const cd = document.getElementById('countdown');
+if (daysLeft > 0) {
+  const left = sessions.filter(s => s.date >= todayIso && s.phase !== 'race').length;
+  cd.textContent = 'อีก ' + daysLeft + ' วันถึงวันแข่ง เหลือซ้อม ' + left + ' ครั้งรวมวันนี้';
+} else if (daysLeft === 0) {
+  cd.textContent = 'วันนี้วันแข่ง ทำตามที่ซ้อมมา';
+} else {
+  cd.textContent = 'การแข่งขันผ่านไปแล้ว';
+}
+
+// calendar strip
+const strip = document.getElementById('strip');
+for (let d = parse('2026-10-28'); d <= race; d.setDate(d.getDate()+1)) {
+  const key = iso(d), s = byDate[key];
+  const el = document.createElement(s && s.ready ? 'a' : 'div');
+  el.className = 'cell ' + (s ? s.phase : 'wk');
+  if (key === todayIso) el.classList.add('today');
+  else if (key < todayIso) el.classList.add('past');
+  el.innerHTML = '<span>' + thDay[d.getDay()] + '</span><b>' + d.getDate() + '</b>';
+  if (s) {
+    el.title = (s.no.match(/^\d+$/) ? 'ครั้งที่ ' + s.no + ': ' : '') + s.title;
+    if (s.ready) el.href = s.file;
+  } else {
+    el.title = 'วันหยุด';
+  }
+  strip.appendChild(el);
+}
+const t = strip.querySelector('.today');
+if (t) t.scrollIntoView({ block:'nearest', inline:'center' });
+
+// lists
+const host = document.getElementById('phases');
+phases.forEach(ph => {
+  const items = sessions.filter(s => ph.key.includes(s.phase));
+  const sec = document.createElement('section');
+  sec.innerHTML = '<h2>' + ph.name + '</h2>' + (ph.note ? '<p class="phase-note">' + ph.note + '</p>' : '');
+  const ul = document.createElement('ul'); ul.className = 'list';
+  items.forEach(s => {
+    const d = parse(s.date);
+    const li = document.createElement('li');
+    li.className = 'row ' + (s.phase === 'buf' ? 'ph1' : s.phase) + (s.date === todayIso ? ' today' : '');
+    const label = /^\d+$/.test(s.no) ? 'ครั้งที่ ' + s.no : s.no === 'สำรอง' ? 'วันสำรอง' : '';
+    const dateHtml = '<div class="date"><b>' + thDay[d.getDay()] + ' ' + d.getDate() + ' ' + thMon[d.getMonth()] + '</b>' + label + '</div>';
+    const titleHtml = '<div class="title">' + s.title + (s.date === todayIso ? '<span class="tag">วันนี้</span>' : '') +
+      (s.note ? '<small>' + s.note + '</small>' : '') + '</div>';
+    let action = '';
+    if (s.phase === 'race') action = '';
+    else if (s.ready) action = '<a class="open" href="' + s.file + '">เปิดหน้าเรียน</a>';
+    else action = '<span class="soon">ยังไม่เปิด</span>';
+    li.innerHTML = dateHtml + titleHtml + '<div>' + action + '</div>';
+    ul.appendChild(li);
+  });
+  sec.appendChild(ul);
+  host.appendChild(sec);
+});
+</script>
+</body>
+</html>
