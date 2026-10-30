@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ครั้งที่ 2: ปิดเซิร์ฟเวอร์แล้วข้อมูลยังอยู่</title>
+<title>ครั้งที่ 2: ติดตั้งและปูพื้น MySQL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -129,6 +129,9 @@ pre.code.game{white-space:pre-wrap}
 .flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:12px 0}
 .flow span{background:var(--sheet); border:1px solid var(--ink); border-radius:4px; padding:4px 10px; font-size:15px}
 .flow em{font-style:normal; color:var(--muted)}
+.part{margin-top:64px; padding-top:8px; border-top:3px double var(--ink)}
+.part-label{font-size:15px; color:var(--muted); margin-bottom:2px}
+.part h2{margin-top:0}
 </style>
 </head>
 <body>
@@ -137,21 +140,23 @@ pre.code.game{white-space:pre-wrap}
 <header>
   <p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
   <p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 2 จาก 16</p>
-  <h1>ปิดเซิร์ฟเวอร์แล้วข้อมูลยังอยู่</h1>
-  <p class="goal">เมื่อวานข้อมูลหายทุกครั้งที่หยุดเซิร์ฟเวอร์ วันนี้ย้ายข้อมูลจาก Array ลง MySQL ที่รันบน Docker แล้วส่งโค้ดขึ้น GitLab เป็นครั้งแรก</p>
+  <h1>ติดตั้งและปูพื้น MySQL</h1>
+  <p class="goal">เมื่อวานข้อมูลหายทุกครั้งที่หยุดเซิร์ฟเวอร์ วันนี้ลง MySQL บนเครื่องตัวเอง ฝึกสั่งงานฐานข้อมูลด้วย SQL แล้วต่อ Express ให้เก็บข้อมูลลงฐานข้อมูลจริง</p>
   <div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
     <div>
-      <div class="who">หยุดเซิร์ฟเวอร์ รันใหม่ แล้วส่ง</div>
-<pre>GET /evaluatees/2</pre>
+      <div class="who">พิมพ์ใน MySQL</div>
+<pre>SELECT name, department
+FROM evaluatees
+WHERE department = 'IT';</pre>
     </div>
     <div>
-      <div class="who">ยังได้คนเดิม เพราะมาจากฐานข้อมูล</div>
-<pre><span class="status">200 OK</span>
-{
-  "id": 2,
-  "name": "วิภา ตั้งใจ",
-  "department": "บัญชี"
-}</pre>
+      <div class="who">ได้ผลกลับมา</div>
+<pre>+---------------+------------+
+| name          | department |
++---------------+------------+
+| สมชาย ใจดี     | IT         |
+| ธนา มุ่งมั่น     | IT         |
++---------------+------------+</pre>
     </div>
   </div>
 </header>
@@ -160,12 +165,13 @@ pre.code.game{white-space:pre-wrap}
   <h2>ตารางวันนี้</h2>
   <ol class="schedule">
     <li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมเติมโค้ดของเมื่อวาน</span></li>
-    <li><span class="min">25 นาที</span><span>เรื่องใหม่: Docker container, ตารางในฐานข้อมูล, async/await, Git</span></li>
-    <li><span class="min">50 นาที</span><span>ทำตามทีละขั้น 5 ขั้น</span></li>
+    <li><span class="min">40 นาที</span><span>ส่วนที่ 1: ติดตั้ง MySQL ทำพร้อมกัน</span></li>
+    <li><span class="min">20 นาที</span><span>ส่วนที่ 2: ฐานข้อมูล ตาราง และชนิดข้อมูล</span></li>
+    <li><span class="min">45 นาที</span><span>ส่วนที่ 3: ฝึก SQL</span></li>
     <li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li>
-    <li><span class="min">80 นาที</span><span>โจทย์ทำเอง: ย้ายตัวชี้วัดลงฐานข้อมูล</span></li>
+    <li><span class="min">60 นาที</span><span>ส่วนที่ 4: ต่อ Express เข้ากับ MySQL</span></li>
     <li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li>
-    <li><span class="min">40 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li>
+    <li><span class="min">30 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li>
   </ol>
 </section>
 
@@ -194,63 +200,165 @@ app.post('/evaluatees', (req, res) => {
     </div>
     <div class="feedback" id="gameFb" aria-live="polite"></div>
   </div>
-  <p>วันนี้เราจะเก็บโครง Route แบบนี้ไว้ทั้งหมด เปลี่ยนแค่ส่วนที่ค้นและเก็บข้อมูลจาก Array เป็นคำสั่ง SQL</p>
+  <p>ช่วงท้ายวันนี้เราจะเก็บโครง Route แบบนี้ไว้ทั้งหมด เปลี่ยนแค่ส่วนที่ค้นและเก็บข้อมูลจาก Array เป็นคำสั่ง SQL</p>
 </section>
 
-<section>
-  <h2>เรื่องใหม่วันนี้</h2>
-  <h3>เส้นทางของข้อมูล</h3>
-  <div class="flow"><span>Thunder Client</span><em>ส่ง</em><span>Express</span><em>เรียกผ่าน mysql2</em><span>MySQL ใน Docker</span><em>ตอบกลับทางเดิม</em></div>
-  <p>Express ไม่ได้เก็บข้อมูลเองแล้ว แค่ส่งคำสั่ง SQL ไปให้ MySQL แล้วรอผลกลับมา</p>
-  <h3>Docker container</h3>
-  <p>เหมือนกล่องที่มี MySQL ติดตั้งพร้อมใช้อยู่ข้างใน สั่งเปิด ปิด หรือลบได้ โดยไม่ต้องลง MySQL ลงเครื่องตรง ๆ ข้อมูลอยู่ในกล่องตราบที่ยังไม่ลบกล่อง</p>
-  <h3>async และ await</h3>
-  <p>การคุยกับฐานข้อมูลต้องรอผล Route ที่เรียกฐานข้อมูลต้องมี <code>async</code> ข้างหน้า และใส่ <code>await</code> หน้าคำสั่งที่ต้องรอ ถ้าลืม <code>await</code> จะได้ของที่ยังไม่เสร็จกลับมาแทนข้อมูล</p>
-  <h3>Git และ GitLab</h3>
-  <p>Git จดประวัติโค้ดในเครื่องเรา GitLab เป็นที่เก็บโค้ดกลางให้ทั้งทีมดึงไปใช้ วันแข่งต้องใช้ GitLab Server ทุกคนจึงต้องฝึกตั้งแต่วันนี้</p>
-</section>
-
-<section>
-  <h2>ทำตามทีละขั้น</h2>
-  <p>ทำเสร็จหนึ่งขั้น ตรวจให้ผ่านก่อนแล้วค่อยไปขั้นถัดไป</p>
+<section class="part">
+  <p class="part-label">ส่วนที่ 1 (40 นาที)</p>
+  <h2>ติดตั้ง MySQL</h2>
+  <p>ทำพร้อมกันทั้งห้องตามจารย์ ใช้ตัวติดตั้งที่จารย์เตรียมไว้ ห้ามกดข้ามหน้าจอที่ยังไม่ได้อ่าน</p>
 
   <div class="step"><div class="n">1</div><div>
-    <h3>เปิด MySQL ใน Docker</h3>
-    <p>เปิด Docker Desktop ให้ทำงานก่อน แล้วรันใน terminal</p>
-    <div class="code-wrap"><pre class="code">docker run --name ltc-mysql -e MYSQL_ROOT_PASSWORD=root1234 -e MYSQL_DATABASE=evaluation -p 3306:3306 -d mysql:8.4</pre><button class="copy">คัดลอก</button></div>
-    <p>ครั้งแรกจะดาวน์โหลดนานหน่อย รอจนเสร็จแล้วเช็กด้วย <code>docker ps</code></p>
-    <p class="check"><strong>ผ่านเมื่อ</strong> <code>docker ps</code> เห็น <code>ltc-mysql</code> และคอลัมน์ STATUS ขึ้นว่า Up</p>
+    <h3>ติดตั้งโปรแกรม</h3>
+    <p>เปิดไฟล์ MySQL Community Server 8.4 แบบ MSI กด Next ตามปกติ เลือกแบบ Typical เมื่อติดตั้งเสร็จจะมีโปรแกรม MySQL Configurator เปิดขึ้นมาให้ตั้งค่าต่อ</p>
   </div></div>
 
   <div class="step"><div class="n">2</div><div>
-    <h3>สร้างตารางและใส่ข้อมูลแรก</h3>
-    <p>เข้าไปพิมพ์คำสั่งใน MySQL (รหัสผ่านคือ <code>root1234</code>)</p>
-    <div class="code-wrap"><pre class="code">docker exec -it ltc-mysql mysql -uroot -p --default-character-set=utf8mb4 evaluation</pre><button class="copy">คัดลอก</button></div>
-    <p>แล้ววางคำสั่ง SQL นี้</p>
-    <div class="code-wrap"><pre class="code">CREATE TABLE evaluatees (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  department VARCHAR(100)
-);
-
-INSERT INTO evaluatees (name, department) VALUES ('สมชาย ใจดี', 'IT');
-
-SELECT * FROM evaluatees;</pre><button class="copy">คัดลอก</button></div>
-    <p class="check"><strong>ผ่านเมื่อ</strong> <code>SELECT</code> แล้วเห็นสมชายหนึ่งแถว ภาษาไทยไม่เป็นเครื่องหมายคำถาม พิมพ์ <code>exit</code> เพื่อออก</p>
+    <h3>ตั้งค่าใน MySQL Configurator</h3>
+    <p>หน้า Type and Networking เลือก Config Type เป็น Development Computer และใช้ Port 3306 ตามเดิม</p>
+    <p>หน้า Accounts and Roles ตั้งรหัสผ่านของ root เป็นค่าที่จารย์บอก ทุกเครื่องใช้ค่าเดียวกัน จดไว้ให้ดี ลืมแล้วแก้ยาก</p>
+    <p>หน้า Windows Service ให้ติ๊ก Configure MySQL Server as a Windows Service และ Start the MySQL Server at System Startup จดชื่อ Service ไว้ด้วย (ปกติคือ <code>MySQL84</code>) แล้วกด Next จนถึงหน้า Execute ให้กด Execute แล้วรอจนเครื่องหมายถูกขึ้นครบ</p>
   </div></div>
 
   <div class="step"><div class="n">3</div><div>
-    <h3>ต่อ Express เข้ากับฐานข้อมูล</h3>
-    <p>ติดตั้งตัวเชื่อมต่อในโฟลเดอร์โปรเจกต์</p>
+    <h3>ให้ terminal รู้จักคำสั่ง mysql</h3>
+    <p>กดปุ่ม Windows พิมพ์ <code>environment</code> เลือก Edit the system environment variables กด Environment Variables ในกล่อง System variables เลือก <code>Path</code> กด Edit แล้วกด New ใส่</p>
+    <div class="code-wrap"><pre class="code">C:\Program Files\MySQL\MySQL Server 8.4\bin</pre><button class="copy">คัดลอก</button></div>
+    <p>กด OK ปิดทุกหน้าต่าง แล้วปิด terminal เดิมทั้งหมด เปิด terminal ใหม่ ถ้าไม่เปิดใหม่ เครื่องจะยังไม่รู้จักคำสั่ง</p>
+    <div class="code-wrap"><pre class="code">mysql --version</pre><button class="copy">คัดลอก</button></div>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div>
+    <h3>เข้า MySQL ครั้งแรก</h3>
+    <div class="code-wrap"><pre class="code">mysql -u root -p --default-character-set=utf8mb4</pre><button class="copy">คัดลอก</button></div>
+    <p>ใส่รหัสผ่าน ตอนพิมพ์จะไม่เห็นตัวอักษรขึ้น เป็นเรื่องปกติ พิมพ์ให้ครบแล้วกด Enter</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>mysql --version</code> ได้เลขเวอร์ชัน และเข้าได้จนเห็น <code>mysql&gt;</code> รอรับคำสั่ง</p>
+  </div></div>
+</section>
+
+<section class="part">
+  <p class="part-label">ส่วนที่ 2 (20 นาที)</p>
+  <h2>ฐานข้อมูล ตาราง และชนิดข้อมูล</h2>
+  <h3>ภาพรวม</h3>
+  <div class="flow"><span>MySQL Server</span><em>มีหลาย</em><span>ฐานข้อมูล</span><em>มีหลาย</em><span>ตาราง</span><em>มีหลาย</em><span>แถว</span></div>
+  <p>MySQL เป็นโปรแกรมที่รันอยู่เบื้องหลังตลอดเวลา ระบบหนึ่งระบบใช้ฐานข้อมูลหนึ่งก้อน เช่น <code>evaluation</code> ข้างในแยกเป็นตาราง ตารางหนึ่งเหมือนแผ่นงาน Excel ที่กำหนดชนิดข้อมูลของแต่ละคอลัมน์ไว้ตายตัว ข้อมูลอยู่ในเครื่องจนกว่าจะสั่งลบ ปิดโปรแกรมหรือปิดเครื่องก็ไม่หาย</p>
+  <h3>ชนิดข้อมูลที่ใช้ในระบบประเมิน</h3>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>ชนิด</th><th>เก็บอะไร</th><th>ตัวอย่างในระบบ</th></tr></thead>
+    <tbody>
+      <tr><td><code>INT</code></td><td>จำนวนเต็ม</td><td>id, คะแนน 1–4, น้ำหนักตัวชี้วัด</td></tr>
+      <tr><td><code>VARCHAR(n)</code></td><td>ข้อความสั้น ยาวไม่เกิน n ตัว</td><td>ชื่อ-สกุล, แผนก, ชื่อผู้ใช้</td></tr>
+      <tr><td><code>TEXT</code></td><td>ข้อความยาว</td><td>ความคิดเห็นของกรรมการ, รายละเอียดผลงาน</td></tr>
+      <tr><td><code>DECIMAL(5,2)</code></td><td>ทศนิยมแบบแม่นยำ</td><td>คะแนนรวม เช่น 87.50</td></tr>
+      <tr><td><code>DATE</code></td><td>วันที่</td><td>วันเริ่มและวันสิ้นสุดรอบประเมิน</td></tr>
+      <tr><td><code>DATETIME</code></td><td>วันที่และเวลา</td><td>เวลาที่ส่งผลประเมิน</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>ข้อกำหนดของคอลัมน์</h3>
+  <p><code>PRIMARY KEY</code> คือคอลัมน์ที่ใช้ระบุแถวแบบไม่ซ้ำกัน ส่วนใหญ่คือ <code>id</code> <code>AUTO_INCREMENT</code> ให้ฐานข้อมูลนับเลข id ให้เอง <code>NOT NULL</code> คือห้ามว่าง และ <code>DEFAULT</code> คือค่าที่ใส่ให้เองถ้าไม่ได้ส่งมา</p>
+  <p>ทุกคำสั่ง SQL ต้องจบด้วย <code>;</code> ถ้าลืม MySQL จะขึ้น <code>-&gt;</code> รอให้พิมพ์ต่อ พิมพ์ <code>;</code> แล้ว Enter ก็ได้</p>
+</section>
+
+<section class="part">
+  <p class="part-label">ส่วนที่ 3 (45 นาที)</p>
+  <h2>ฝึก SQL</h2>
+  <p>ทำต่อใน <code>mysql&gt;</code> พิมพ์ทีละชุด ดูผลทุกครั้ง ช่วงนี้แนะนำให้พิมพ์เอง ไม่ต้องคัดลอก จะจำได้ดีกว่า</p>
+
+  <div class="step"><div class="n">1</div><div>
+    <h3>สร้างและเลือกฐานข้อมูล</h3>
+    <div class="code-wrap"><pre class="code">CREATE DATABASE evaluation CHARACTER SET utf8mb4;
+SHOW DATABASES;
+USE evaluation;</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>SHOW DATABASES</code> เห็น <code>evaluation</code> และ <code>USE</code> ขึ้นว่า Database changed</p>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div>
+    <h3>สร้างตาราง</h3>
+    <div class="code-wrap"><pre class="code">CREATE TABLE evaluatees (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  department VARCHAR(100),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+SHOW TABLES;
+DESCRIBE evaluatees;</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>DESCRIBE</code> แสดงครบ 4 คอลัมน์ และอธิบายได้ว่าแต่ละคอลัมน์ใช้ชนิดข้อมูลอะไร เพราะอะไร</p>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div>
+    <h3>ใส่และดูข้อมูล</h3>
+    <div class="code-wrap"><pre class="code">INSERT INTO evaluatees (name, department) VALUES
+  ('สมชาย ใจดี', 'IT'),
+  ('วิภา ตั้งใจ', 'บัญชี'),
+  ('ธนา มุ่งมั่น', 'IT');
+
+SELECT * FROM evaluatees;
+SELECT name, department FROM evaluatees;
+SELECT * FROM evaluatees WHERE department = 'IT';
+SELECT * FROM evaluatees ORDER BY name;</pre><button class="copy">คัดลอก</button></div>
+    <p>สังเกตว่าเราไม่ได้ใส่ <code>id</code> กับ <code>created_at</code> เอง ฐานข้อมูลเติมให้</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> <code>SELECT</code> ทั้ง 4 แบบได้ผลต่างกันตามที่ควรเป็น และภาษาไทยแสดงถูก</p>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div>
+    <h3>แก้และลบ ในตารางทิ้ง</h3>
+    <p>สร้างตารางทิ้งไว้ฝึก จะได้ไม่ทำข้อมูลจริงพัง</p>
+    <div class="code-wrap"><pre class="code">CREATE TABLE practice_trash (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  note VARCHAR(50)
+);
+INSERT INTO practice_trash (note) VALUES ('ก'), ('ข'), ('ค');
+
+UPDATE practice_trash SET note = 'แก้แล้ว' WHERE id = 2;
+DELETE FROM practice_trash WHERE id = 3;
+SELECT * FROM practice_trash;</pre><button class="copy">คัดลอก</button></div>
+    <p>ทีนี้ลองลืม <code>WHERE</code> ดูว่าเกิดอะไร</p>
+    <div class="code-wrap"><pre class="code">UPDATE practice_trash SET note = 'หายหมด';
+SELECT * FROM practice_trash;
+DROP TABLE practice_trash;</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> อธิบายได้ว่าทำไมทุกแถวกลายเป็น หายหมด และสัญญากับตัวเองว่าจะเขียน <code>WHERE</code> ก่อนเสมอ</p>
+  </div></div>
+
+  <h3>โจทย์ทำเอง: ตารางตัวชี้วัด</h3>
+  <div class="sheet">
+    <p>สร้างตาราง <code>indicators</code> มีคอลัมน์ <code>id</code> (เลขอัตโนมัติ), <code>title</code> (ข้อความไม่เกิน 200 ตัว ห้ามว่าง) และ <code>weight</code> (จำนวนเต็ม ห้ามว่าง) แล้วใส่ข้อมูล 5 แถว จากนั้นเขียน SQL ตอบโจทย์ทีละข้อ</p>
+    <p>ข้อ 1 แสดงเฉพาะตัวชี้วัดที่น้ำหนักมากกว่า 10 เรียงจากน้ำหนักมากไปน้อย ข้อ 2 เปลี่ยนน้ำหนักของตัวชี้วัด id 3 เป็น 15 ข้อ 3 ลบตัวชี้วัด id 5 แล้วแสดงที่เหลือทั้งหมด</p>
+    <details><summary>เฉลย เปิดหลังทำเสร็จแล้วเท่านั้น</summary>
+      <div class="code-wrap"><pre class="code">CREATE TABLE indicators (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200) NOT NULL,
+  weight INT NOT NULL
+);
+
+SELECT * FROM indicators WHERE weight > 10 ORDER BY weight DESC;
+UPDATE indicators SET weight = 15 WHERE id = 3;
+DELETE FROM indicators WHERE id = 5;
+SELECT * FROM indicators;</pre><button class="copy">คัดลอก</button></div>
+    </details>
+  </div>
+</section>
+
+<section class="part">
+  <p class="part-label">ส่วนที่ 4 (60 นาที)</p>
+  <h2>ต่อ Express เข้ากับ MySQL</h2>
+  <div class="flow"><span>Thunder Client</span><em>ส่ง</em><span>Express</span><em>เรียกผ่าน mysql2</em><span>MySQL</span><em>ตอบกลับทางเดิม</em></div>
+  <p>Express ไม่เก็บข้อมูลเองแล้ว แค่ส่งคำสั่ง SQL ที่ฝึกมาเมื่อกี้ไปให้ MySQL แล้วรอผล การรอผลจึงต้องใช้ <code>async</code> หน้าฟังก์ชัน และ <code>await</code> หน้าคำสั่งที่ต้องรอ ถ้าลืม <code>await</code> จะได้ของที่ยังไม่เสร็จกลับมาแทนข้อมูล</p>
+
+  <div class="step"><div class="n">1</div><div>
+    <h3>ติดตั้งตัวเชื่อมต่อ และสร้าง db.js</h3>
+    <p>ในโฟลเดอร์โปรเจกต์ Express</p>
     <div class="code-wrap"><pre class="code">npm install mysql2</pre><button class="copy">คัดลอก</button></div>
-    <p>สร้างไฟล์ใหม่ชื่อ <code>db.js</code> ไว้ข้างไฟล์เซิร์ฟเวอร์</p>
+    <p>สร้างไฟล์ <code>db.js</code> ไว้ข้างไฟล์เซิร์ฟเวอร์</p>
     <div class="code-wrap"><pre class="code">const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
   host: 'localhost',
   port: 3306,
   user: 'root',
-  password: 'root1234',
+  password: 'root1234', // เปลี่ยนเป็นรหัสที่ตั้งตอนติดตั้ง
   database: 'evaluation'
 });
 
@@ -260,9 +368,9 @@ module.exports = pool;</pre><button class="copy">คัดลอก</button></di
     <p class="check"><strong>ผ่านเมื่อ</strong> รันเซิร์ฟเวอร์ได้โดยไม่มี error และ <code>/health</code> ยังใช้ได้</p>
   </div></div>
 
-  <div class="step"><div class="n">4</div><div>
-    <h3>เปลี่ยน Route ให้อ่านเขียนจากฐานข้อมูล</h3>
-    <p>แทนที่ Route เดิมทั้งสามตัวด้วยชุดนี้ สังเกตว่าโครงเหมือนเมื่อวาน เปลี่ยนแค่ตรงกลาง</p>
+  <div class="step"><div class="n">2</div><div>
+    <h3>เปลี่ยน Route ให้ใช้ SQL</h3>
+    <p>แทนที่ Route ของ <code>/evaluatees</code> ทั้งสามตัวด้วยชุดนี้ โครงเหมือนเมื่อวาน เปลี่ยนแค่ตรงกลางเป็นคำสั่ง SQL ที่เพิ่งฝึก</p>
     <div class="code-wrap"><pre class="code">app.get('/evaluatees', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM evaluatees');
@@ -303,73 +411,50 @@ app.post('/evaluatees', async (req, res) => {
   }
 });</pre><button class="copy">คัดลอก</button></div>
     <p>เครื่องหมาย <code>?</code> คือช่องว่างที่ mysql2 จะเติมค่าจาก Array ให้อย่างปลอดภัย ห้ามเอาค่าที่ผู้ใช้ส่งมาต่อเป็นข้อความ SQL เอง</p>
-    <p class="check"><strong>ผ่านเมื่อ</strong> POST คนใหม่ได้ 201 แล้วหยุดเซิร์ฟเวอร์ รันใหม่ GET ด้วย id นั้นยังเจอ และ GET id 999 ได้ 404</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> POST คนใหม่ได้ 201 แล้วหยุดเซิร์ฟเวอร์ รันใหม่ GET ด้วย id นั้นยังเจอ เปิด MySQL ดูด้วย <code>SELECT</code> ก็เห็นคนใหม่ และ GET id 999 ได้ 404</p>
   </div></div>
 
-  <div class="step"><div class="n">5</div><div>
-    <h3>ส่งโค้ดขึ้น GitLab</h3>
-    <p>สร้างไฟล์ <code>.gitignore</code> ในโฟลเดอร์โปรเจกต์ ใส่บรรทัดเดียว</p>
-    <div class="code-wrap"><pre class="code">node_modules</pre><button class="copy">คัดลอก</button></div>
-    <p>ถ้าเครื่องนี้ยังไม่เคยใช้ Git ให้ตั้งชื่อก่อนครั้งเดียว</p>
-    <div class="code-wrap"><pre class="code">git config --global user.name "ชื่อของเรา"
-git config --global user.email "อีเมลของเรา"</pre><button class="copy">คัดลอก</button></div>
-    <p>สร้าง project เปล่าบน GitLab ตามที่จารย์บอก คัดลอก URL ของ project มา แล้วรัน</p>
-    <div class="code-wrap"><pre class="code">git init
-git add .
-git commit -m "เก็บข้อมูลผู้รับการประเมินลง MySQL"
-git branch -M main
-git remote add origin URL_ของ_PROJECT
-git push -u origin main</pre><button class="copy">คัดลอก</button></div>
-    <p class="check"><strong>ผ่านเมื่อ</strong> เปิดหน้า project บน GitLab แล้วเห็นไฟล์ของเรา และไม่มีโฟลเดอร์ <code>node_modules</code></p>
-  </div></div>
+  <h3>ใครเสร็จก่อน</h3>
+  <p>ทำ <code>/indicators</code> ทั้ง GET ทั้งหมด, GET ด้วย id และ POST ให้ใช้ตาราง <code>indicators</code> ที่สร้างไว้ในส่วนที่ 3 ปิดโค้ดตัวอย่างไว้ ใครยังไม่เสร็จ ทำต่อต้นคาบพรุ่งนี้ได้</p>
+  <p class="check"><strong>ท้าทายเพิ่ม</strong> ถ้า POST มาโดยไม่มี <code>title</code> ให้ตอบ 400 ก่อนส่งคำสั่งไปฐานข้อมูล</p>
+  <p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p>
+</section>
 
-  <h3>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h3>
+<section>
+  <h2>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h2>
+  <h3>ตอนติดตั้งและเข้า MySQL</h3>
+  <details><summary>พิมพ์ <code>mysql</code> แล้วขึ้นว่าไม่รู้จักคำสั่ง</summary>
+    <p>เปิด terminal ใหม่หลังแก้ Path หรือยัง terminal ที่เปิดค้างไว้ก่อนแก้จะไม่รู้จัก</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>เปิด File Explorer ไปที่ <code>C:\Program Files\MySQL</code> ดูว่าชื่อโฟลเดอร์ตรงกับที่ใส่ใน Path ทุกตัวอักษรไหม และข้างในมีไฟล์ <code>mysql.exe</code> อยู่ในโฟลเดอร์ <code>bin</code></p></details>
+  </details>
+  <details><summary>เข้า MySQL ไม่ได้ ขึ้น <code>Can't connect to MySQL server</code></summary>
+    <p>MySQL ไม่ได้ทำงานอยู่</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>กดปุ่ม Windows พิมพ์ <code>services</code> เปิดโปรแกรม Services หาชื่อ <code>MySQL84</code> ถ้าสถานะไม่ใช่ Running ให้คลิกขวาแล้วเลือก Start</p></details>
+  </details>
+  <details><summary>ขึ้น <code>Access denied for user 'root'</code></summary>
+    <p>รหัสผ่านผิด พิมพ์ใหม่ช้า ๆ ระวังปุ่ม Caps Lock และภาษาของแป้นพิมพ์ว่าเป็นภาษาอังกฤษ</p>
+  </details>
+  <details><summary>MySQL ขึ้น <code>-&gt;</code> หรือ <code>'&gt;</code> ค้างอยู่</summary>
+    <p><code>-&gt;</code> คือลืม <code>;</code> พิมพ์ <code>;</code> แล้ว Enter ส่วน <code>'&gt;</code> คือเปิดเครื่องหมาย <code>'</code> ไว้แต่ไม่ได้ปิด พิมพ์ <code>\c</code> แล้ว Enter เพื่อยกเลิกคำสั่งนั้นแล้วพิมพ์ใหม่</p>
+  </details>
+  <details><summary>ภาษาไทยในตารางเป็นเครื่องหมายคำถาม</summary>
+    <p>ตอนเข้า MySQL ลืมใส่ <code>--default-character-set=utf8mb4</code> ให้ออกด้วย <code>exit</code> แล้วเข้าใหม่พร้อมตัวเลือกนี้ จากนั้นลบแถวที่เพี้ยนแล้วใส่ใหม่ ข้อมูลที่ POST ผ่าน Express จะไม่มีปัญหานี้</p>
+  </details>
+  <h3>ตอนต่อ Express</h3>
   <details><summary>Error ขึ้นว่า <code>ECONNREFUSED</code></summary>
-    <p>Express ต่อ MySQL ไม่ติด ลองดูว่า container ยังทำงานอยู่ไหม</p>
-    <details><summary>คำใบ้ชั้นที่ 2</summary><p>รัน <code>docker ps</code> ถ้าไม่เห็น <code>ltc-mysql</code> ให้ <code>docker start ltc-mysql</code> แล้วรอ 10–20 วินาทีให้ MySQL พร้อมก่อน</p></details>
+    <p>Express ต่อ MySQL ไม่ติด ลองเข้า MySQL จาก terminal ดูว่ายังเข้าได้ไหม ถ้าไม่ได้ ดูคำใบ้เรื่อง Services ข้างบน</p>
   </details>
   <details><summary>Error ขึ้นว่า <code>ER_ACCESS_DENIED_ERROR</code></summary>
-    <p>รหัสผ่านใน <code>db.js</code> ตรงกับตอนสั่ง <code>docker run</code> หรือเปล่า</p>
+    <p>รหัสผ่านใน <code>db.js</code> ตรงกับรหัสที่ใช้เข้า MySQL หรือเปล่า</p>
   </details>
-  <details><summary>Error ขึ้นว่าไม่มีตาราง <code>evaluatees</code></summary>
-    <p>ตารางถูกสร้างในฐานข้อมูลชื่อ <code>evaluation</code> จริงไหม</p>
-    <details><summary>คำใบ้ชั้นที่ 2</summary><p>เข้า MySQL อีกรอบแล้วพิมพ์ <code>SHOW TABLES;</code> ถ้าไม่เห็น ให้กลับไปทำขั้นที่ 2 ใหม่ และดูว่า <code>database</code> ใน <code>db.js</code> สะกดตรงกัน</p></details>
-  </details>
-  <details><summary><code>docker run</code> แล้วบอกว่า port 3306 ถูกใช้อยู่</summary>
-    <p>เครื่องนี้มี MySQL อีกตัวรันอยู่แล้ว</p>
-    <details><summary>คำใบ้ชั้นที่ 2</summary><p>ลบ container ที่สร้างไม่สำเร็จด้วย <code>docker rm ltc-mysql</code> แล้วรันใหม่โดยเปลี่ยนเป็น <code>-p 3307:3306</code> และแก้ <code>port: 3307</code> ใน <code>db.js</code></p></details>
+  <details><summary>Error ขึ้นว่าไม่มีฐานข้อมูลหรือไม่มีตาราง</summary>
+    <p>ชื่อ <code>database</code> ใน <code>db.js</code> สะกดตรงกับที่สร้างไว้ไหม</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>เข้า MySQL พิมพ์ <code>USE evaluation;</code> แล้ว <code>SHOW TABLES;</code> ถ้าไม่เห็นตาราง ให้กลับไปทำส่วนที่ 3 ขั้นที่ 2 ใหม่</p></details>
   </details>
   <details><summary>ได้ข้อมูลแปลก ๆ หรือ <code>rows</code> เป็น undefined</summary>
     <p>ดูว่ามี <code>await</code> หน้า <code>pool.query</code> หรือยัง และ Route มี <code>async</code> ข้างหน้าหรือเปล่า</p>
     <details><summary>คำใบ้ชั้นที่ 2</summary><p><code>pool.query</code> ส่งกลับมาเป็น Array สองช่อง ช่องแรกคือข้อมูล จึงต้องเขียน <code>const [rows] =</code> มีวงเล็บเหลี่ยม</p></details>
   </details>
-  <details><summary>ภาษาไทยในฐานข้อมูลเป็นเครื่องหมายคำถาม</summary>
-    <p>ตอนเข้า MySQL ลืมใส่ <code>--default-character-set=utf8mb4</code> ลบแถวนั้นแล้วเข้าใหม่พร้อมตัวเลือกนี้ ข้อมูลที่ POST ผ่าน Express จะไม่มีปัญหานี้</p>
-  </details>
-  <details><summary><code>git push</code> ถูกปฏิเสธหรือถามรหัสผ่าน</summary>
-    <p>เรียกจารย์ เรื่องสิทธิ์เข้า GitLab แก้จากฝั่ง project</p>
-  </details>
-</section>
-
-<section>
-  <h2>โจทย์ทำเอง: ย้ายตัวชี้วัดลงฐานข้อมูล</h2>
-  <p>เอา <code>/indicators</code> ที่ทำเมื่อวานมาเปลี่ยนให้ใช้ฐานข้อมูล ปิดโค้ดตัวอย่างไว้ เปิดดูได้เมื่อติดเกิน 10 นาทีเท่านั้น</p>
-  <div class="sheet">
-    <p>สร้างตาราง <code>indicators</code> มีคอลัมน์ <code>id</code> (เลขอัตโนมัติ), <code>title</code> (ข้อความ ห้ามว่าง) และ <code>weight</code> (ตัวเลข)</p>
-    <div class="tbl">
-    <table>
-      <thead><tr><th>Method</th><th>Endpoint</th><th>ต้องได้</th></tr></thead>
-      <tbody>
-        <tr><td>GET</td><td><code>/indicators</code></td><td>200 พร้อมข้อมูลจากตาราง</td></tr>
-        <tr><td>GET</td><td><code>/indicators/:id</code></td><td>200 ถ้าเจอ, 404 ถ้าไม่เจอ</td></tr>
-        <tr><td>POST</td><td><code>/indicators</code></td><td>201 พร้อม id ที่ฐานข้อมูลสร้างให้</td></tr>
-      </tbody>
-    </table>
-    </div>
-    <p>เสร็จแล้ว commit และ push ขึ้น GitLab อีกครั้ง</p>
-    <p class="check"><strong>ท้าทายเพิ่ม</strong> ถ้า POST มาโดยไม่มี <code>title</code> ให้ตอบ 400 ก่อนส่งคำสั่งไปฐานข้อมูล</p>
-  </div>
-  <p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p>
 </section>
 
 <section id="quiz">
@@ -382,14 +467,14 @@ git push -u origin main</pre><button class="copy">คัดลอก</button></d
   <h2>Exit Ticket</h2>
   <p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนลงมือเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
   <div class="sheet ticket" id="ticket">
-    <label><input type="checkbox"><span>ผู้ตรวจ POST ตัวชี้วัดใหม่ หยุดเซิร์ฟเวอร์ รันใหม่ แล้ว GET ยังเจอตัวนั้น</span></label>
-    <label><input type="checkbox"><span>ผู้ตรวจ GET <code>/indicators/999</code> แล้วได้ 404</span></label>
-    <label><input type="checkbox"><span>ผู้ตรวจสั่ง <code>docker stop ltc-mysql</code> แล้วเรียก API ได้ 500 พร้อมข้อความ เซิร์ฟเวอร์ไม่ดับ จากนั้น <code>docker start ltc-mysql</code> คืน</span></label>
-    <label><input type="checkbox"><span>เจ้าของเปิด GitLab ให้ดู commit ล่าสุด และไม่มี <code>node_modules</code></span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจ POST คนใหม่ หยุด Express รันใหม่ แล้ว GET ยังเจอคนนั้น</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจตั้งโจทย์ SQL หนึ่งข้อ เช่น หาคนแผนก IT เรียงตามชื่อ เจ้าของเขียนคำสั่งที่ถูกได้เองโดยไม่เปิดดู</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจ GET <code>/evaluatees/999</code> แล้วได้ 404</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจแก้รหัสผ่านใน <code>db.js</code> ให้ผิดชั่วคราว รันใหม่ แล้วเรียก API ได้ 500 พร้อมข้อความ เซิร์ฟเวอร์ไม่ดับ จากนั้นแก้กลับให้ถูก</span></label>
     <label><input type="checkbox"><span>เจ้าของอธิบายเส้นทางข้อมูลตั้งแต่กดส่งใน Thunder Client จนได้ผลกลับมาได้เอง</span></label>
     <div class="ticket-state" id="ticketState" aria-live="polite">ยังเหลือ 5 ข้อ</div>
   </div>
-  <p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน จารย์จะสุ่มถามข้อสุดท้ายเพิ่มบางคน</p>
+  <p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร ถ้าแก้ไม่ทัน ทำต่อต้นคาบพรุ่งนี้ จารย์จะสุ่มถามข้อสุดท้ายเพิ่มบางคน</p>
   <p class="sub">พรุ่งนี้: ทำหน้าเว็บด้วย Vue แสดงรายชื่อและฟอร์มเพิ่มข้อมูล เรียก API ที่ทำวันนี้</p>
 </section>
 
@@ -405,7 +490,6 @@ document.querySelectorAll('.copy').forEach(btn => {
   });
 });
 
-// fill-in game
 const blanks = [...document.querySelectorAll('.blank')];
 const fb = document.getElementById('gameFb');
 blanks.forEach(b => b.addEventListener('change', () => { b.classList.remove('ok','bad'); fb.textContent=''; fb.className='feedback'; }));
@@ -418,32 +502,32 @@ document.getElementById('checkGame').addEventListener('click', () => {
   });
   if (empty) { fb.className = 'feedback bad'; fb.textContent = 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ช่อง'; return; }
   if (wrong) { fb.className = 'feedback bad'; fb.textContent = 'ผิด ' + wrong + ' ช่อง ช่องที่ขอบแดงลองคิดใหม่ ช่องขอบเขียวถูกแล้ว'; return; }
-  fb.className = 'feedback ok'; fb.textContent = 'ถูกทั้งหมด จำโครงนี้ไว้ วันนี้ใช้ต่อทั้งหมด';
+  fb.className = 'feedback ok'; fb.textContent = 'ถูกทั้งหมด จำโครงนี้ไว้ ช่วงท้ายวันนี้ใช้ต่อทั้งหมด';
 });
 document.getElementById('resetGame').addEventListener('click', () => {
   blanks.forEach(b => { b.value = ''; b.classList.remove('ok','bad'); });
   fb.textContent = ''; fb.className = 'feedback';
 });
 
-// quiz
 const quiz = [
-  { q: 'POST เพิ่มไว้ 3 คน แล้วหยุดเซิร์ฟเวอร์ Express รันใหม่ GET /evaluatees จะได้อะไร',
-    opts: ['Array ว่าง เหมือนเมื่อวาน', 'ยังเห็นทั้ง 3 คนพร้อมสมชาย', 'error 500', 'เห็นแค่สมชาย'],
+  { q: 'ระบบต้องเก็บวันสิ้นสุดของรอบประเมิน ควรใช้ชนิดข้อมูลอะไร',
+    opts: ['VARCHAR(20)', 'INT', 'DATE', 'TEXT'],
+    a: 2, why: 'DATE เก็บวันที่ได้ตรงชนิด เอาไปเทียบหรือเรียงลำดับได้ถูกต้อง ถ้าเก็บเป็นข้อความจะเทียบวันที่ผิด' },
+  { q: 'สั่ง UPDATE evaluatees SET department = \'IT\'; โดยไม่มี WHERE จะเกิดอะไร',
+    opts: ['MySQL ไม่ยอมทำ', 'เปลี่ยนแค่แถวแรก', 'ทุกแถวในตารางกลายเป็นแผนก IT', 'เปลี่ยนแค่แถวล่าสุด'],
+    a: 2, why: 'ไม่มี WHERE แปลว่าทุกแถว เหมือนที่ลองในตารางทิ้ง วันแข่งพลาดแบบนี้ข้อมูลทดสอบหายหมด' },
+  { q: 'POST เพิ่มไว้ 3 คน แล้วหยุด Express รันใหม่ GET /evaluatees จะได้อะไร',
+    opts: ['Array ว่าง เหมือนเมื่อวาน', 'ยังเห็นคนทั้งหมดรวม 3 คนใหม่', 'error 500', 'เห็นแค่คนที่ใส่ไว้ใน MySQL ตอนฝึก'],
     a: 1, why: 'ข้อมูลอยู่ใน MySQL ไม่ได้อยู่ในหน่วยความจำของ Express แล้ว หยุด Express ไม่ทำให้ข้อมูลหาย' },
-  { q: 'ถ้าสั่ง docker stop ltc-mysql แล้วเรียก GET /evaluatees จะเกิดอะไร',
-    opts: ['ได้ข้อมูลตามปกติ', 'ได้ 404', 'ได้ 500 พร้อมข้อความเกิดข้อผิดพลาดที่ฐานข้อมูล', 'ได้ 201'],
-    a: 2, why: 'ต่อฐานข้อมูลไม่ได้จึงเกิด error แล้ว catch จับไว้และตอบ 500 เซิร์ฟเวอร์จึงไม่ดับ' },
   { q: 'ทำไมใช้ ? แล้วส่งค่าเป็น Array แทนการต่อข้อความ SQL เอง',
-    opts: ['เพื่อให้โค้ดสั้นลงเท่านั้น', 'กันคนส่งข้อความที่เป็นคำสั่ง SQL มาแทรก และจัดการเครื่องหมายคำพูดให้เอง', 'เพราะ MySQL อ่าน + ไม่ได้', 'ทำให้ฐานข้อมูลเร็วขึ้นสิบเท่า'],
-    a: 1, why: 'เรียกว่าการป้องกัน SQL Injection กรรมการมักถามเรื่องนี้ ควรตอบได้ด้วยคำพูดของตัวเอง' },
-  { q: 'ทำไมต้องเขียน const [rows] = await pool.query(...) มีวงเล็บเหลี่ยม',
-    opts: ['เพราะผลที่ได้เป็น Array สองช่อง ช่องแรกคือข้อมูล', 'เพราะ rows เป็นคำสงวน', 'ไม่จำเป็น ใส่หรือไม่ใส่ก็เหมือนกัน', 'เพราะต้องการแค่แถวแรก'],
-    a: 0, why: 'pool.query ส่งกลับ [ข้อมูล, รายละเอียดคอลัมน์] วงเล็บเหลี่ยมคือการหยิบช่องแรกออกมา' }
+    opts: ['เพื่อให้โค้ดสั้นลงเท่านั้น', 'กันคนส่งข้อความที่เป็นคำสั่ง SQL มาแทรก และจัดการเครื่องหมายคำพูดให้เอง', 'เพราะ MySQL อ่านเครื่องหมาย + ไม่ได้', 'ทำให้ฐานข้อมูลเร็วขึ้นสิบเท่า'],
+    a: 1, why: 'เรียกว่าการป้องกัน SQL Injection กรรมการมักถามเรื่องนี้ ควรตอบได้ด้วยคำพูดของตัวเอง' }
 ];
 const box = document.getElementById('quizBox');
 quiz.forEach((item, qi) => {
   const wrap = document.createElement('div'); wrap.className = 'sheet q';
-  const p = document.createElement('p'); p.innerHTML = '<strong>' + (qi + 1) + '.</strong> ' + item.q; wrap.appendChild(p);
+  const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+  p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
   const opts = document.createElement('div'); opts.className = 'opts';
   const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
   item.opts.forEach((o, oi) => {

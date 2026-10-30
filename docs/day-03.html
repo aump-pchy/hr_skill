@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 3: กดจากหน้าเว็บ ข้อมูลเข้าฐานข้อมูล</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+/* day 3 extras */
+.sort-row{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line)}
+.sort-row code{font-size:13px; word-break:break-word}
+.seg{display:flex; gap:4px; flex-wrap:wrap}
+.seg button{font:inherit; font-size:14px; padding:4px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.seg button.on{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.sort-row.ok{box-shadow:inset 4px 0 0 var(--ok); padding-left:10px}
+.sort-row.bad{box-shadow:inset 4px 0 0 var(--bad); padding-left:10px}
+@media (max-width:560px){ .sort-row{grid-template-columns:1fr} }
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:12px 0}
+.flow span{background:var(--sheet); border:1px solid var(--ink); border-radius:4px; padding:4px 10px; font-size:15px}
+.flow em{font-style:normal; color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+  <p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 3 จาก 16</p>
+  <h1>กดจากหน้าเว็บ ข้อมูลเข้าฐานข้อมูล</h1>
+  <p class="goal">สองวันที่ผ่านมาเราส่งข้อมูลผ่าน Thunder Client วันนี้ทำหน้าเว็บด้วย Vue ให้คนทั่วไปใช้ได้ หน้าเดียวมีตารางรายชื่อกับฟอร์มเพิ่มคนใหม่ เรียก API ที่ทำไว้แล้ว</p>
+  <div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+    <div>
+      <div class="who">ผู้ใช้กรอกฟอร์มแล้วกดเพิ่ม</div>
+<pre>ชื่อ-สกุล  [ วิภา ตั้งใจ     ]
+แผนก      [ บัญชี          ]
+          [ เพิ่ม ]</pre>
+    </div>
+    <div>
+      <div class="who">ตารางอัปเดตทันที ไม่ต้องรีเฟรช</div>
+<pre>ลำดับ  ชื่อ           แผนก
+1      สมชาย ใจดี     IT
+2      วิภา ตั้งใจ     บัญชี  <span class="status">ใหม่</span></pre>
+    </div>
+  </div>
+</header>
+
+<section>
+  <h2>ตารางวันนี้</h2>
+  <ol class="schedule">
+    <li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมแยกคำสั่งของเมื่อวาน</span></li>
+    <li><span class="min">25 นาที</span><span>เรื่องใหม่: Vue, ref, v-for, v-model, fetch, CORS</span></li>
+    <li><span class="min">50 นาที</span><span>ทำตามทีละขั้น 5 ขั้น</span></li>
+    <li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li>
+    <li><span class="min">80 นาที</span><span>โจทย์ทำเอง: หน้าตัวชี้วัด</span></li>
+    <li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li>
+    <li><span class="min">40 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li>
+  </ol>
+</section>
+
+<section id="game">
+  <h2>เกม: คำสั่งนี้อยู่ที่ไหน</h2>
+  <p>ห้ามเปิดไฟล์เมื่อวานดู แต่ละบรรทัดเลือกว่าเราพิมพ์มันที่ไหน แล้วกดตรวจ</p>
+  <div class="sheet" id="sortBox"></div>
+  <div class="btns">
+    <button class="act" id="checkGame">ตรวจคำตอบ</button>
+    <button class="act ghost" id="resetGame">ล้างคำตอบ</button>
+  </div>
+  <div class="feedback" id="gameFb" aria-live="polite"></div>
+  <p>วันนี้จะมีที่ที่สี่เพิ่มเข้ามา คือโค้ด Vue ที่รันในเบราว์เซอร์ของผู้ใช้</p>
+</section>
+
+<section>
+  <h2>เรื่องใหม่วันนี้</h2>
+  <h3>เส้นทางของข้อมูลเมื่อมีหน้าเว็บ</h3>
+  <div class="flow"><span>Vue ในเบราว์เซอร์</span><em>fetch</em><span>Express</span><em>SQL</em><span>MySQL</span><em>ตอบกลับทางเดิม แล้ว Vue วาดตารางใหม่</em></div>
+  <p>Vue ไม่ได้คุยกับฐานข้อมูลตรง ๆ ทุกอย่างต้องผ่าน API ของเรา</p>
+  <h3>ref คือตัวแปรที่หน้าเว็บคอยดู</h3>
+  <p>ข้อมูลที่ประกาศด้วย <code>ref()</code> เมื่อเปลี่ยนค่า หน้าเว็บจะวาดใหม่ให้เอง ในส่วน <code>&lt;script&gt;</code> ต้องอ่านเขียนผ่าน <code>.value</code> แต่ในส่วน <code>&lt;template&gt;</code> ใช้ชื่อตรง ๆ ได้เลย</p>
+  <h3>v-for, v-model และ @submit</h3>
+  <p><code>v-for</code> วนสร้างแถวตามข้อมูลใน Array <code>v-model</code> ผูกช่องกรอกกับตัวแปร พิมพ์เมื่อไหร่ตัวแปรเปลี่ยนตาม ส่วน <code>@submit.prevent</code> คือเรียกฟังก์ชันตอนกดส่งฟอร์ม โดยไม่ให้เบราว์เซอร์รีเฟรชหน้า</p>
+  <h3>CORS</h3>
+  <p>หน้าเว็บ Vue รันที่ port 5173 ส่วน API อยู่ที่ 3000 เบราว์เซอร์ถือว่าเป็นคนละเว็บ และจะไม่ยอมให้เรียกข้ามกัน จนกว่า API จะบอกว่าอนุญาต Thunder Client ไม่ใช่เบราว์เซอร์จึงไม่เคยเจอเรื่องนี้</p>
+</section>
+
+<section>
+  <h2>ทำตามทีละขั้น</h2>
+  <p>ทำเสร็จหนึ่งขั้น ตรวจให้ผ่านก่อนแล้วค่อยไปขั้นถัดไป เปิด terminal ไว้สองหน้าต่าง หน้าต่างหนึ่งรัน Express อีกหน้าต่างรัน Vue</p>
+
+  <div class="step"><div class="n">1</div><div>
+    <h3>ให้ Express อนุญาตหน้าเว็บ</h3>
+    <p>ในโฟลเดอร์ Express ติดตั้ง</p>
+    <div class="code-wrap"><pre class="code">npm install cors</pre><button class="copy">คัดลอก</button></div>
+    <p>ในไฟล์เซิร์ฟเวอร์ เพิ่มสองบรรทัดนี้ไว้ก่อน <code>app.use(express.json());</code></p>
+    <div class="code-wrap"><pre class="code">const cors = require('cors');
+app.use(cors());</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> รัน Express ใหม่แล้ว <code>GET /evaluatees</code> ใน Thunder Client ยังได้ข้อมูลเหมือนเดิม</p>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div>
+    <h3>สร้างโปรเจกต์ Vue</h3>
+    <p>ไปที่โฟลเดอร์นอกสุด ที่เดียวกับที่มีโฟลเดอร์ Express แล้วรัน</p>
+    <div class="code-wrap"><pre class="code">npm create vue@latest frontend</pre><button class="copy">คัดลอก</button></div>
+    <p>คำถามทั้งหมดตอบ No ไปก่อน วันนี้ยังไม่ใช้ Router จากนั้น</p>
+    <div class="code-wrap"><pre class="code">cd frontend
+npm install
+npm run dev</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> เปิด <code>http://localhost:5173</code> แล้วเห็นหน้าตัวอย่างของ Vue</p>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div>
+    <h3>เก็บที่อยู่ API ไว้ที่เดียว</h3>
+    <p>สร้างไฟล์ <code>.env</code> ในโฟลเดอร์ <code>frontend</code> ใส่บรรทัดนี้</p>
+    <div class="code-wrap"><pre class="code">VITE_API_URL=http://localhost:3000</pre><button class="copy">คัดลอก</button></div>
+    <p>หยุด <code>npm run dev</code> ด้วย Ctrl+C แล้วรันใหม่ ทุกครั้งที่แก้ <code>.env</code> ต้องรันใหม่ วันขึ้นเครื่องแม่ข่ายจะแก้แค่บรรทัดนี้บรรทัดเดียว</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> รัน Vue ใหม่ได้โดยไม่มี error</p>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div>
+    <h3>แสดงรายชื่อจาก API</h3>
+    <p>เปิด <code>frontend/src/App.vue</code> ลบของเดิมทั้งหมด แล้ววางชุดนี้</p>
+    <div class="code-wrap"><pre class="code">&lt;script setup&gt;
+import { ref, onMounted } from 'vue'
+
+const API = import.meta.env.VITE_API_URL
+const evaluatees = ref([])
+const errorMsg = ref('')
+
+async function loadEvaluatees() {
+  errorMsg.value = ''
+  try {
+    const res = await fetch(`${API}/evaluatees`)
+    if (!res.ok) throw new Error('โหลดข้อมูลไม่สำเร็จ')
+    evaluatees.value = await res.json()
+  } catch (err) {
+    errorMsg.value = 'ติดต่อเซิร์ฟเวอร์ไม่ได้: ' + err.message
+  }
+}
+
+onMounted(loadEvaluatees)
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;main&gt;
+    &lt;h1&gt;รายชื่อผู้รับการประเมิน&lt;/h1&gt;
+    &lt;p v-if="errorMsg" style="color: red"&gt;{{ errorMsg }}&lt;/p&gt;
+    &lt;table border="1" cellpadding="6"&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;&lt;th&gt;ลำดับ&lt;/th&gt;&lt;th&gt;ชื่อ&lt;/th&gt;&lt;th&gt;แผนก&lt;/th&gt;&lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr v-for="e in evaluatees" :key="e.id"&gt;
+          &lt;td&gt;{{ e.id }}&lt;/td&gt;
+          &lt;td&gt;{{ e.name }}&lt;/td&gt;
+          &lt;td&gt;{{ e.department }}&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/main&gt;
+&lt;/template&gt;</pre><button class="copy">คัดลอก</button></div>
+    <p>ถ้าหน้าตาเพี้ยนเพราะสไตล์ตัวอย่างของ Vue ให้ลบบรรทัด <code>import './assets/main.css'</code> ใน <code>src/main.js</code> วันนี้เน้นให้ทำงานได้ก่อน ความสวยค่อยว่ากันทีหลัง</p>
+    <p class="check"><strong>ผ่านเมื่อ</strong> หน้าเว็บเห็นรายชื่อทุกคนที่อยู่ในฐานข้อมูล ตรงกับ <code>GET /evaluatees</code> ใน Thunder Client</p>
+  </div></div>
+
+  <div class="step"><div class="n">5</div><div>
+    <h3>ฟอร์มเพิ่มคนใหม่</h3>
+    <p>ในส่วน <code>&lt;script setup&gt;</code> เพิ่มต่อจาก <code>loadEvaluatees</code></p>
+    <div class="code-wrap"><pre class="code">const form = ref({ name: '', department: '' })
+
+async function addEvaluatee() {
+  errorMsg.value = ''
+  try {
+    const res = await fetch(`${API}/evaluatees`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form.value)
+    })
+    if (!res.ok) throw new Error('เพิ่มข้อมูลไม่สำเร็จ')
+    form.value = { name: '', department: '' }
+    await loadEvaluatees()
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}</pre><button class="copy">คัดลอก</button></div>
+    <p>ในส่วน <code>&lt;template&gt;</code> วางฟอร์มนี้ไว้ใต้ <code>&lt;h1&gt;</code></p>
+    <div class="code-wrap"><pre class="code">&lt;form @submit.prevent="addEvaluatee"&gt;
+  &lt;input v-model="form.name" placeholder="ชื่อ-สกุล" required&gt;
+  &lt;input v-model="form.department" placeholder="แผนก"&gt;
+  &lt;button type="submit"&gt;เพิ่ม&lt;/button&gt;
+&lt;/form&gt;</pre><button class="copy">คัดลอก</button></div>
+    <p class="check"><strong>ผ่านเมื่อ</strong> กรอกแล้วกดเพิ่ม ตารางมีคนใหม่ทันที ช่องกรอกว่างลง และรีเฟรชหน้าแล้วคนใหม่ยังอยู่</p>
+  </div></div>
+
+  <h3>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h3>
+  <details><summary>หน้าเว็บไม่มีข้อมูล ใน Console ขึ้นคำว่า CORS</summary>
+    <p>API ยังไม่อนุญาตให้หน้าเว็บที่ port 5173 เรียก ดูขั้นที่ 1 อีกครั้ง</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p><code>app.use(cors())</code> ต้องอยู่ก่อน Route ทั้งหมด และต้องหยุดแล้วรัน Express ใหม่หลังแก้</p></details>
+  </details>
+  <details><summary>หน้าเว็บขาวทั้งหน้า</summary>
+    <p>กด F12 เปิด Console แล้วอ่านข้อความสีแดงบรรทัดแรก ส่วนใหญ่บอกเลยว่าพิมพ์ผิดตรงไหนใน <code>App.vue</code></p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>เช็กว่าแท็ก <code>&lt;script setup&gt;</code> และ <code>&lt;template&gt;</code> เปิดปิดครบคู่ และ <code>import</code> สะกดถูก</p></details>
+  </details>
+  <details><summary>Error ขึ้นว่าเรียก <code>undefined/evaluatees</code></summary>
+    <p>Vue ยังอ่าน <code>.env</code> ไม่ได้</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>ไฟล์ <code>.env</code> ต้องอยู่ในโฟลเดอร์ <code>frontend</code> ไม่ใช่ใน <code>src</code> ชื่อตัวแปรต้องขึ้นต้นด้วย <code>VITE_</code> และต้องรัน <code>npm run dev</code> ใหม่หลังแก้</p></details>
+  </details>
+  <details><summary>กดเพิ่มแล้วหน้ารีเฟรช ข้อมูลไม่เข้า</summary>
+    <p>ดูว่าเขียน <code>@submit.prevent</code> ครบหรือยัง ถ้าไม่มี <code>.prevent</code> เบราว์เซอร์จะส่งฟอร์มแบบเก่าแล้วรีเฟรชหน้า</p>
+  </details>
+  <details><summary>กดเพิ่มแล้วได้ข้อความ เพิ่มข้อมูลไม่สำเร็จ</summary>
+    <p>เปิด F12 ไปแท็บ Network กดเพิ่มอีกครั้ง แล้วคลิกที่ request ที่เป็นสีแดง ดูว่าได้ status อะไร</p>
+    <details><summary>คำใบ้ชั้นที่ 2</summary><p>ถ้าได้ 500 ให้ดู terminal ของ Express ว่า error อะไร ถ้า body ที่ส่งไปว่าง ให้เช็ก <code>headers</code> กับ <code>JSON.stringify</code></p></details>
+  </details>
+  <details><summary>รัน <code>npm run dev</code> แล้วบอกว่าหา script ไม่เจอ</summary>
+    <p>อยู่ผิดโฟลเดอร์ ต้อง <code>cd frontend</code> ก่อน</p>
+  </details>
+</section>
+
+<section>
+  <h2>โจทย์ทำเอง: หน้าตัวชี้วัด</h2>
+  <p>ทำหน้าตัวชี้วัดในไฟล์ <code>App.vue</code> เดิม ต่อจากตารางรายชื่อ ปิดโค้ดตัวอย่างไว้ เปิดดูได้เมื่อติดเกิน 10 นาทีเท่านั้น</p>
+  <div class="sheet">
+    <p>ต้องมีตารางแสดงตัวชี้วัดทั้งหมดจาก <code>GET /indicators</code> และฟอร์มเพิ่มตัวชี้วัดที่มีช่อง <code>title</code> กับ <code>weight</code> ส่งไป <code>POST /indicators</code> เพิ่มแล้วตารางต้องอัปเดตทันที</p>
+    <p>ช่อง <code>weight</code> ให้ใช้ <code>type="number"</code> และ <code>v-model.number</code> เพื่อให้ส่งไปเป็นตัวเลข ไม่ใช่ข้อความ</p>
+    <p class="check"><strong>ท้าทายเพิ่ม</strong> ถ้าเมื่อวานทำให้ API ตอบ 400 ตอนไม่มี <code>title</code> ได้แล้ว ให้เอา <code>required</code> ออกจากช่องกรอกชั่วคราว แล้วทำให้หน้าเว็บแสดงข้อความที่ API ส่งกลับมา แทนข้อความกลาง ๆ</p>
+  </div>
+  <p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p>
+</section>
+
+<section id="quiz">
+  <h2>ทายผลก่อนกดส่ง</h2>
+  <p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p>
+  <div id="quizBox"></div>
+</section>
+
+<section>
+  <h2>Exit Ticket</h2>
+  <p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนลงมือเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
+  <div class="sheet ticket" id="ticket">
+    <label><input type="checkbox"><span>ผู้ตรวจเพิ่มตัวชี้วัดจากฟอร์ม แล้วตารางมีตัวใหม่ทันทีโดยไม่ต้องรีเฟรช</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจรีเฟรชหน้า ตัวชี้วัดใหม่ยังอยู่</span></label>
+    <label><input type="checkbox"><span>เจ้าของเปิด F12 แท็บ Network ชี้ request POST ที่ได้ 201 และข้อมูลที่ส่งไปให้ผู้ตรวจดูได้</span></label>
+    <label><input type="checkbox"><span>ผู้ตรวจหยุด Express แล้วรีเฟรชหน้า หน้าเว็บขึ้นข้อความผิดพลาด ไม่ใช่หน้าขาวหรือเงียบ</span></label>
+    <label><input type="checkbox"><span>เจ้าของอธิบายเส้นทางข้อมูลตั้งแต่กดปุ่มเพิ่ม จนตารางวาดใหม่ได้เอง</span></label>
+    <div class="ticket-state" id="ticketState" aria-live="polite">ยังเหลือ 5 ข้อ</div>
+  </div>
+  <p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน จารย์จะสุ่มถามข้อสุดท้ายเพิ่มบางคน</p>
+  <p class="sub">ครั้งถัดไป: แก้ไขและลบข้อมูลด้วย PUT กับ DELETE และตรวจข้อมูลก่อนบันทึก</p>
+</section>
+
+</main>
+
+<script>
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+
+// sorting game
+const places = ['Terminal', 'โค้ด Express', 'ใน MySQL'];
+const items = [
+  { t: 'mysql -u root -p --default-character-set=utf8mb4', a: 0 },
+  { t: "const [rows] = await pool.query('SELECT * FROM evaluatees')", a: 1 },
+  { t: 'CREATE TABLE indicators (...);', a: 2 },
+  { t: 'mysql --version', a: 0 },
+  { t: "res.status(500).json({ message: 'เกิดข้อผิดพลาดที่ฐานข้อมูล' })", a: 1 },
+  { t: 'SELECT * FROM evaluatees;', a: 2 },
+  { t: 'npm install mysql2', a: 0 },
+  { t: "const pool = require('./db');", a: 1 },
+  { t: 'SHOW TABLES;', a: 2 }
+];
+const sortBox = document.getElementById('sortBox');
+const fb = document.getElementById('gameFb');
+const picks = new Array(items.length).fill(-1);
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const order = shuffle(items.map((_, i) => i));
+order.forEach(idx => {
+  const row = document.createElement('div'); row.className = 'sort-row'; row.dataset.idx = idx;
+  const code = document.createElement('code'); code.textContent = items[idx].t;
+  const seg = document.createElement('div'); seg.className = 'seg';
+  places.forEach((p, pi) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = p;
+    b.addEventListener('click', () => {
+      picks[idx] = pi;
+      [...seg.children].forEach(x => x.classList.remove('on')); b.classList.add('on');
+      row.classList.remove('ok','bad'); fb.textContent = ''; fb.className = 'feedback';
+    });
+    seg.appendChild(b);
+  });
+  row.appendChild(code); row.appendChild(seg); sortBox.appendChild(row);
+});
+document.getElementById('checkGame').addEventListener('click', () => {
+  const rows = [...sortBox.children];
+  const empty = picks.filter(p => p === -1).length;
+  rows.forEach(r => r.classList.remove('ok','bad'));
+  if (empty) { fb.className = 'feedback bad'; fb.textContent = 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' บรรทัด'; return; }
+  let wrong = 0;
+  rows.forEach(r => { const i = +r.dataset.idx; if (picks[i] === items[i].a) r.classList.add('ok'); else { r.classList.add('bad'); wrong++; } });
+  if (wrong) { fb.className = 'feedback bad'; fb.textContent = 'ผิด ' + wrong + ' บรรทัด บรรทัดที่มีแถบแดงลองคิดใหม่'; }
+  else { fb.className = 'feedback ok'; fb.textContent = 'ถูกทั้งหมด แยกได้ชัดแบบนี้ เวลา error จะรู้ทันทีว่าต้องไปดูตรงไหน'; }
+});
+document.getElementById('resetGame').addEventListener('click', () => {
+  picks.fill(-1);
+  [...sortBox.children].forEach(r => { r.classList.remove('ok','bad'); r.querySelectorAll('button').forEach(b => b.classList.remove('on')); });
+  fb.textContent = ''; fb.className = 'feedback';
+});
+
+// quiz
+const quiz = [
+  { q: 'ถ้าลืมใส่ app.use(cors()) แล้วเปิดหน้า Vue จะเกิดอะไร',
+    opts: ['หน้าเว็บโหลดข้อมูลได้ปกติ', 'เบราว์เซอร์ไม่ยอมให้เรียก API และ Console ขึ้น error CORS แต่ Thunder Client ยังเรียกได้', 'Express ดับทันที', 'MySQL ปฏิเสธการเชื่อมต่อ'],
+    a: 1, why: 'CORS เป็นกฎของเบราว์เซอร์ Thunder Client ไม่ใช่เบราว์เซอร์จึงไม่โดนกฎนี้' },
+  { q: 'ถ้าเขียน @submit="addEvaluatee" โดยไม่มี .prevent กดเพิ่มแล้วจะเกิดอะไร',
+    opts: ['ทำงานเหมือนเดิมทุกอย่าง', 'หน้ารีเฟรช และ fetch อาจไม่ทันทำงาน', 'ปุ่มกดไม่ได้', 'ข้อมูลเข้าสองแถว'],
+    a: 1, why: 'ฟอร์มในเบราว์เซอร์จะรีเฟรชหน้าเมื่อกดส่ง .prevent คือการบอกว่าไม่ต้องทำแบบนั้น ให้ Vue จัดการเอง' },
+  { q: 'ใน <script setup> ทำไมต้องเขียน evaluatees.value = ... ไม่เขียน evaluatees = ...',
+    opts: ['เพราะ ref เก็บค่าจริงไว้ใน .value ต้องเปลี่ยนตรงนั้นหน้าเว็บถึงจะวาดใหม่', 'เพราะ Vue ห้ามใช้เครื่องหมาย =', 'ไม่จำเป็น เขียนแบบไหนก็ได้', 'เพราะ evaluatees เป็น const'],
+    a: 0, why: 'ถ้าแทนค่าทั้งตัวแปร Vue จะไม่รู้ว่าข้อมูลเปลี่ยน ใน template ไม่ต้องใส่ .value เพราะ Vue แกะให้เอง' },
+  { q: 'หลัง POST สำเร็จ ทำไมเราเรียก loadEvaluatees() อีกรอบ',
+    opts: ['เพื่อดึงรายชื่อล่าสุดจากฐานข้อมูลมาวาดตารางใหม่ รวม id ที่ฐานข้อมูลสร้างให้', 'เพื่อลบข้อมูลเก่า', 'เพราะ fetch ต้องเรียกสองครั้งเสมอ', 'เพื่อเช็กว่า Express ยังทำงานอยู่'],
+    a: 0, why: 'ตารางในหน้าเว็บจะตรงกับฐานข้อมูลเสมอ ซึ่งง่ายที่สุดและพลาดน้อยที่สุดสำหรับตอนนี้' }
+];
+const box = document.getElementById('quizBox');
+quiz.forEach((item, qi) => {
+  const wrap = document.createElement('div'); wrap.className = 'sheet q';
+  const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+  p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
+  const opts = document.createElement('div'); opts.className = 'opts';
+  const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+  item.opts.forEach((o, oi) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+    b.addEventListener('click', () => {
+      [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+      if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+      else { b.classList.add('picked-bad'); why.textContent = 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล'; }
+    });
+    opts.appendChild(b);
+  });
+  wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+});
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>
