@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 7: ออกแบบร่วมกันทั้งทีม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+.blank{font:inherit;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--sheet);color:var(--text);border:2px solid var(--ink);border-radius:4px;padding:1px 4px;margin:0 2px}
+.sort-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.sort-row .txt{font-size:15px;word-break:break-word}
+.seg{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.seg button{font:inherit;font-size:14px;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:var(--sheet);color:var(--text);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sort-row.ok{box-shadow:inset 4px 0 0 var(--ok);padding-left:10px}
+.sort-row.bad{box-shadow:inset 4px 0 0 var(--bad);padding-left:10px}
+@media (max-width:640px){.sort-row{grid-template-columns:1fr}.seg{justify-content:flex-start}}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0}
+.flow span{background:var(--sheet);border:1px solid var(--ink);border-radius:4px;padding:4px 10px;font-size:15px}
+.flow em{font-style:normal;color:var(--muted)}
+.part{margin-top:64px;padding-top:8px;border-top:3px double var(--ink)}
+.part-label{font-size:15px;color:var(--muted);margin-bottom:2px}
+.part h2{margin-top:0}
+.role-card{background:var(--sheet);border:1px solid var(--line);border-top:5px solid var(--ink);border-radius:6px;padding:18px 20px;margin:20px 0}
+.role-card h3{margin-top:0}
+.role-card .who{color:var(--muted);font-size:15px;margin-bottom:8px}
+.tree{white-space:pre}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+<p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 7 จาก 16</p><h1>ออกแบบร่วมกันทั้งทีม</h1><p class="goal">วันแรกของช่วงแบ่งงาน ทั้งทีมช่วยกันวาด Use Case ออกแบบฐานข้อมูล เขียนเอกสาร API และวางโครง repo ให้ทุกคนแยกกันทำงานได้โดยรวมกันง่าย</p><div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+<div><div class="who">ผลงานที่ต้องมีบน GitLab ตอนจบ</div><pre>docs/use-case.drawio
+docs/er.drawio
+docs/api.md
+backend/sql/schema.sql
+backend/routes/ (แยกไฟล์ตามกลุ่ม)
+frontend/src/pages/ (แยกโฟลเดอร์ตามกลุ่ม)</pre></div>
+<div><div class="who">ทุกเครื่องรันได้</div><pre><span class="status">พร้อมแยกงาน</span>
+mysql&gt; SOURCE sql/schema.sql;
+Query OK ...
+
+mysql&gt; SHOW TABLES;
+(เห็นครบทุกตารางตามแผนภาพ)</pre></div></div></header>
+<section><h2>ตารางวันนี้</h2><ol class="schedule"><li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมความสัมพันธ์ของข้อมูล</span></li><li><span class="min">30 นาที</span><span>ส่วนที่ 1: อ่านโจทย์และวาด Use Case</span></li><li><span class="min">60 นาที</span><span>ส่วนที่ 2: ออกแบบฐานข้อมูล</span></li><li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li><li><span class="min">50 นาที</span><span>ส่วนที่ 3: เขียนเอกสาร API</span></li><li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li><li><span class="min">40 นาที</span><span>ส่วนที่ 4: โครง repo และกติกา Git ของทีม</span></li><li><span class="min">15 นาที</span><span>ทายผล แล้วตรวจ Exit Ticket ทั้งทีม</span></li></ol></section>
+<section id="game"><h2>เกม: ข้อมูลคู่นี้สัมพันธ์กันแบบไหน</h2><p>อ่านทีละข้อ แล้วเลือกว่าความสัมพันธ์เป็นแบบหนึ่งต่อหลาย หรือหลายต่อหลาย</p><div class="sheet"><div id="sortBox"></div>
+<div class="btns"><button class="act" id="checkGame">ตรวจคำตอบ</button><button class="act ghost" id="resetGame">เริ่มใหม่</button></div>
+<div class="feedback" id="gameFb" aria-live="polite"></div></div><p>แบบหลายต่อหลายต้องมีตารางกลางคั่นเสมอ เช่น ตาราง <code>assignments</code> ที่จับคู่ผู้รับการประเมินกับกรรมการ เดี๋ยวจะได้ใช้ในส่วนที่ 2</p></section>
+<section><h2>ก่อนเริ่ม</h2><div class="sheet"><p><strong>วันนี้ทำงานเป็นทีม</strong> ตัวจริงทั้ง 3 คนและตัวสำรองนั่งด้วยกัน ยังไม่เขียนโค้ดฟีเจอร์ ผลงานของวันนี้คือแบบที่ทุกคนเห็นตรงกัน เพราะวันแข่งไม่มีเวลามาเถียงกันว่าตารางชื่ออะไร หรือ API ส่งอะไรกลับมา</p>
+<p>บทบาทที่ใช้ในหน้านี้: <strong>คนแกน</strong> ดูแลฐานข้อมูล Login สิทธิ์ เครื่องแม่ข่าย และงานบุคลากร <strong>คนผู้รับการประเมิน</strong> และ <strong>คนกรรมการ</strong> ดูแลงานของกลุ่มผู้ใช้นั้นทั้งหน้าเว็บและ API ตัวสำรองนั่งคู่กับคนกรรมการและฝึกงานของคนผู้รับการประเมิน</p>
+<p>บันทึกงานออกแบบทุกชิ้นลงโฟลเดอร์ <code>docs/</code> ด้วย Draw.io Offline</p></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 1 (30 นาที)</p><h2>อ่านโจทย์และวาด Use Case</h2><p>ทุกคนอ่านรายการฟังก์ชันของทั้ง 3 กลุ่มผู้ใช้จากโจทย์ แล้วแต่ละคนอ่านกลุ่มของตัวเองออกเสียงให้ทีมฟัง ทีมช่วยกันวาด Use Case Diagram รูปเดียว</p><div class="step"><div class="n">1</div><div>
+<h3>หาผู้ใช้ (Actor)</h3>
+<p>งานบุคลากร ผู้รับการประเมิน และกรรมการผู้ประเมิน กรรมการแยกบทบาทประธานกับกรรมการร่วมด้วย ลองถามกันว่าสองบทบาทนี้ทำอะไรต่างกัน</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>หาสิ่งที่แต่ละคนทำ (Use Case)</h3>
+<p>หนึ่งวงรีคือหนึ่งงานที่ผู้ใช้ทำ เขียนเป็นคำกริยา เช่น กำหนดรอบประเมิน แนบหลักฐาน ให้คะแนน ยืนยันผลประเมิน ทุกกลุ่มมี เข้าสู่ระบบ ร่วมกัน</p>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>บันทึก</h3>
+<p>บันทึกเป็น <code>docs/use-case.drawio</code> และ Export เป็นรูป PNG ไว้ใช้ตอนนำเสนอ</p><p class="check"><strong>ผ่านเมื่อ</strong> Use Case ครบทุกฟังก์ชันในโจทย์ของทั้ง 3 กลุ่ม และทุกคนชี้ได้ว่างานไหนเป็นของตัวเอง</p>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 2 (60 นาที)</p><h2>ออกแบบฐานข้อมูล</h2><h3>เรื่องใหม่: Foreign Key</h3>
+<p>Foreign Key คือคอลัมน์ที่เก็บ id ของอีกตาราง เพื่อบอกว่าแถวนี้เป็นของใคร เช่น ตัวชี้วัดมี <code>topic_id</code> บอกว่าอยู่ใต้หัวข้อไหน MySQL จะไม่ยอมให้ใส่ <code>topic_id</code> ที่ไม่มีอยู่จริง ข้อมูลจึงไม่หลุดลอย</p><div class="code-wrap"><pre class="code">FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE</pre></div><p><code>ON DELETE CASCADE</code> คือลบหัวข้อแล้วตัวชี้วัดใต้หัวข้อนั้นหายตามไปด้วย ใช้เมื่อข้อมูลลูกไม่มีความหมายถ้าไม่มีแม่</p><div class="step"><div class="n">1</div><div>
+<h3>หาตาราง</h3>
+<p>ไล่จาก Use Case ว่ามีข้อมูลอะไรต้องเก็บ คำนามที่โผล่บ่อยมักเป็นตาราง เช่น รอบประเมิน หัวข้อ ตัวชี้วัด ผลงาน หลักฐาน ตั้งชื่อตารางเป็นภาษาอังกฤษตัวเล็ก พหูพจน์ คั่นคำด้วยขีดล่าง</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>ใส่คอลัมน์และชนิดข้อมูล</h3>
+<p>ทุกตารางมี <code>id</code> เป็น PRIMARY KEY เลือกชนิดข้อมูลให้เหมาะ คะแนนแบบมี/ไม่มี และแบบ 1–4 เก็บต่างกันอย่างไร ทีมต้องตกลงกัน</p>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>ลากเส้นความสัมพันธ์</h3>
+<p>ใช้ ER Diagram ใน Draw.io บันทึกเป็น <code>docs/er.drawio</code> ทุกเส้นต้องบอกได้ว่าเป็นหนึ่งต่อหลายหรือหลายต่อหลาย</p>
+</div></div><div class="step"><div class="n">4</div><div>
+<h3>เขียนเป็น schema.sql</h3>
+<p>คนแกนเขียนไฟล์ <code>backend/sql/schema.sql</code> ที่สร้างฐานข้อมูลใหม่หมดได้ในคำสั่งเดียว ขึ้นต้นด้วยสามบรรทัดนี้ แล้วตามด้วย <code>CREATE TABLE</code> ทุกตาราง เรียงตารางแม่ก่อนตารางลูก</p><div class="code-wrap"><pre class="code">DROP DATABASE IF EXISTS evaluation;
+CREATE DATABASE evaluation CHARACTER SET utf8mb4;
+USE evaluation;</pre><button class="copy">คัดลอก</button></div><p>รันไฟล์นี้จากใน MySQL ได้ โดยเปิด terminal ที่โฟลเดอร์ <code>backend</code> ก่อนเข้า MySQL</p><div class="code-wrap"><pre class="code">SOURCE sql/schema.sql;</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> รัน <code>SOURCE</code> ได้โดยไม่มี error และ <code>SHOW TABLES;</code> เห็นครบทุกตารางตามแผนภาพ</p>
+</div></div><details><summary>แบบอ้างอิงของจารย์ เปิดหลังทีมออกแบบเองเสร็จแล้วเท่านั้น</summary>
+<p>ใช้เทียบว่าทีมขาดอะไรหรือมีอะไรที่ทำต่างไป ทีมไม่จำเป็นต้องเหมือนแบบนี้ แต่ต้องอธิบายได้ว่าทำไมออกแบบแบบของตัวเอง</p><div class="code-wrap"><pre class="code">DROP DATABASE IF EXISTS evaluation;
+CREATE DATABASE evaluation CHARACTER SET utf8mb4;
+USE evaluation;
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  department VARCHAR(100),
+  role ENUM(&#x27;hr&#x27;,&#x27;evaluatee&#x27;,&#x27;committee&#x27;) NOT NULL,
+  must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE evaluation_rounds (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL
+);
+
+CREATE TABLE topics (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  round_id INT NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  FOREIGN KEY (round_id) REFERENCES evaluation_rounds(id) ON DELETE CASCADE
+);
+
+CREATE TABLE indicators (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  topic_id INT NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  weight INT NOT NULL,
+  score_type ENUM(&#x27;scale_1_4&#x27;,&#x27;yes_no&#x27;) NOT NULL,
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
+);
+
+CREATE TABLE assignments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  round_id INT NOT NULL,
+  evaluatee_id INT NOT NULL,
+  committee_id INT NOT NULL,
+  committee_role ENUM(&#x27;chair&#x27;,&#x27;member&#x27;) NOT NULL,
+  status ENUM(&#x27;draft&#x27;,&#x27;submitted&#x27;) NOT NULL DEFAULT &#x27;draft&#x27;,
+  overall_comment TEXT,
+  signature_path VARCHAR(255),
+  submitted_at DATETIME,
+  UNIQUE (round_id, evaluatee_id, committee_id),
+  FOREIGN KEY (round_id) REFERENCES evaluation_rounds(id) ON DELETE CASCADE,
+  FOREIGN KEY (evaluatee_id) REFERENCES users(id),
+  FOREIGN KEY (committee_id) REFERENCES users(id)
+);
+
+CREATE TABLE works (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  evaluatee_id INT NOT NULL,
+  indicator_id INT NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  detail TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (evaluatee_id) REFERENCES users(id),
+  FOREIGN KEY (indicator_id) REFERENCES indicators(id) ON DELETE CASCADE
+);
+
+CREATE TABLE evidences (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  work_id INT NOT NULL,
+  type ENUM(&#x27;file&#x27;,&#x27;url&#x27;) NOT NULL,
+  file_path VARCHAR(255),
+  original_name VARCHAR(255),
+  url VARCHAR(500),
+  FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE
+);
+
+CREATE TABLE self_assessments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  evaluatee_id INT NOT NULL,
+  indicator_id INT NOT NULL,
+  score INT NOT NULL,
+  note TEXT,
+  UNIQUE (evaluatee_id, indicator_id),
+  FOREIGN KEY (evaluatee_id) REFERENCES users(id),
+  FOREIGN KEY (indicator_id) REFERENCES indicators(id) ON DELETE CASCADE
+);
+
+CREATE TABLE committee_scores (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  assignment_id INT NOT NULL,
+  indicator_id INT NOT NULL,
+  score INT NOT NULL,
+  comment TEXT,
+  UNIQUE (assignment_id, indicator_id),
+  FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE CASCADE,
+  FOREIGN KEY (indicator_id) REFERENCES indicators(id) ON DELETE CASCADE
+);</pre><button class="copy">คัดลอก</button></div><p>คะแนนแบบมี/ไม่มีเก็บเป็น 1 กับ 0 ในคอลัมน์ <code>score</code> เดียวกับแบบ 1–4 แล้วดูชนิดจาก <code>score_type</code> ของตัวชี้วัด ส่วนสถานะร่างกับยืนยันและลายเซ็นของกรรมการอยู่ใน <code>assignments</code> เพราะกรรมการหนึ่งคนยืนยันผลของผู้รับการประเมินหนึ่งคนครั้งเดียว</p></details></section>
+<section class="part"><p class="part-label">ส่วนที่ 3 (50 นาที)</p><h2>เขียนเอกสาร API</h2><p>แต่ละคนเขียน Endpoint ของกลุ่มตัวเองลงไฟล์ <code>docs/api.md</code> ไฟล์เดียวกัน แล้วอ่านให้ทีมฟัง คนที่ต้องใช้ข้อมูลของคนอื่น เช่น กรรมการต้องดูผลงานของผู้รับการประเมิน ต้องตกลงกันตรงนี้ว่าจะส่งข้อมูลหน้าตาแบบไหน</p><div class="step"><div class="n">1</div><div>
+<h3>ตกลงกติกากลางของทีม</h3>
+<p>เขียนไว้บนสุดของ <code>docs/api.md</code> ให้ทุกคนทำเหมือนกัน</p><div class="code-wrap"><pre class="code">## กติกากลาง
+- ชื่อ field ใน JSON ใช้ชื่อเดียวกับคอลัมน์ในฐานข้อมูล เช่น full_name, topic_id
+- error ทุกตัวตอบเป็น { &quot;message&quot;: &quot;ข้อความภาษาไทย&quot; }
+- ทุก Endpoint ยกเว้น /auth/login ต้องแนบ Authorization: Bearer &lt;token&gt;
+- Path ขึ้นต้นตามบทบาท: /hr/... งานบุคลากร, /my/... ผู้รับการประเมิน, /committee/... กรรมการ
+- /account/... ใช้ได้ทุกบทบาทที่ Login แล้ว</pre></div>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>เขียนตาราง Endpoint</h3>
+<p>ใช้รูปแบบเดียวกันทุกแถว เกณฑ์ให้คะแนนต้องการ Endpoint, Method, Parameter, Response, Status Code, Error และสิทธิ์</p><div class="code-wrap"><pre class="code">## งานบุคลากร
+| Method | Endpoint | สิทธิ์ | ส่งไป | สำเร็จได้ | Error |
+|---|---|---|---|---|---|
+| POST | /auth/login | ไม่ต้อง Login | username, password | 200 token, user | 400, 401 |
+| GET | /hr/rounds | hr | - | 200 รายการรอบ | 401, 403 |
+| POST | /hr/rounds | hr | name, start_date, end_date | 201 รอบที่สร้าง | 400, 401, 403 |</pre></div><p class="check"><strong>ผ่านเมื่อ</strong> ทุกฟังก์ชันใน Use Case ของกลุ่มตัวเองมีอย่างน้อยหนึ่ง Endpoint รองรับ และมีครบ GET, POST, PUT, DELETE ในภาพรวมของทั้งระบบ</p>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>ผังงานและ Class Diagram</h3>
+<p>ผังงานของ Login และของแต่ละกลุ่มผู้ใช้ กับ Class Diagram แต่ละคนทำส่วนของตัวเอง ใช้ช่วงทวน 15 นาทีแรกของครั้งที่ 9 ถึง 11 แทนเกม วันนี้ตกลงกันแค่ว่าใครวาดอะไร</p>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 4 (40 นาที)</p><h2>โครง repo และกติกา Git ของทีม</h2><div class="step"><div class="n">1</div><div>
+<h3>เลือกโค้ดฐาน</h3>
+<p>ใช้โค้ดระบบเล็กของคนที่ผ่าน Exit Ticket ครั้งที่ 6 ครบที่สุดเป็นฐาน คนแกนเป็นคนจัดโครงตามข้อถัดไป ส่วนคนอื่นยังเก็บของตัวเองไว้ดูได้</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>จัดโครงโฟลเดอร์ให้แยกงานกันชัด</h3>
+<p>แต่ละคนแก้แต่ไฟล์ของกลุ่มตัวเอง จะได้ชนกันน้อยที่สุดตอนรวมงาน</p><div class="code-wrap"><pre class="code">evaluation-system/
+├── docs/                      งานออกแบบทั้งหมด
+├── backend/
+│   ├── sql/schema.sql         คนแกน
+│   ├── seed.js                คนแกน
+│   ├── db.js  config.js       คนแกน
+│   ├── middleware/auth.js     คนแกน
+│   ├── routes/auth.js         คนแกน
+│   ├── routes/hr.js           คนแกน
+│   ├── routes/account.js      คนผู้รับการประเมิน
+│   ├── routes/evaluatee.js    คนผู้รับการประเมิน
+│   ├── routes/committee.js    คนกรรมการ
+│   └── server.js              คนแกน
+└── frontend/src/
+    ├── api.js  roles.js  router.js   คนแกน
+    └── pages/
+        ├── hr/                คนแกน
+        ├── evaluatee/         คนผู้รับการประเมิน
+        └── committee/         คนกรรมการ</pre></div>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>แยก Route เป็นไฟล์ด้วย express.Router</h3>
+<p>แต่ละไฟล์ใน <code>routes/</code> หน้าตาแบบนี้ ใส่ด่านตรวจไว้บนสุดครั้งเดียว ทุก Route ในไฟล์ได้ด่านเดียวกัน</p><div class="code-wrap"><pre class="code">const express = require(&#x27;express&#x27;);
+const pool = require(&#x27;../db&#x27;);
+const { requireAuth, requireRole } = require(&#x27;../middleware/auth&#x27;);
+
+const router = express.Router();
+router.use(requireAuth, requireRole(&#x27;hr&#x27;));
+
+router.get(&#x27;/rounds&#x27;, async (req, res) =&gt; {
+  // ...
+});
+
+module.exports = router;</pre><button class="copy">คัดลอก</button></div><p>แล้วใน <code>server.js</code> เหลือแค่การตั้งค่าและการบอกว่า path ไหนใช้ไฟล์ไหน</p><div class="code-wrap"><pre class="code">app.use(&#x27;/auth&#x27;, require(&#x27;./routes/auth&#x27;));
+app.use(&#x27;/hr&#x27;, require(&#x27;./routes/hr&#x27;));
+app.use(&#x27;/account&#x27;, require(&#x27;./routes/account&#x27;));
+app.use(&#x27;/my&#x27;, require(&#x27;./routes/evaluatee&#x27;));
+app.use(&#x27;/committee&#x27;, require(&#x27;./routes/committee&#x27;));</pre><button class="copy">คัดลอก</button></div><p>ใน <code>routes/auth.js</code> path จะเหลือแค่ <code>/login</code> เพราะ <code>/auth</code> ถูกใส่ให้จาก <code>server.js</code> แล้ว ไฟล์ที่ยังไม่มีงาน ให้สร้างไว้ก่อนโดยมีแค่ <code>router</code> เปล่ากับ <code>module.exports</code></p>
+</div></div><div class="step"><div class="n">4</div><div>
+<h3>ทุกคน clone แล้วรันให้ได้</h3>
+<p>คนแกน push โครงขึ้น GitLab project ใหม่ของทีม แล้วทุกคน clone ไปที่เครื่องตัวเอง</p><div class="code-wrap"><pre class="code">git clone URL_ของ_PROJECT_ทีม
+cd evaluation-system/backend
+npm install
+cd ../frontend
+npm install</pre><button class="copy">คัดลอก</button></div><p>จากนั้นเข้า MySQL แล้ว <code>SOURCE sql/schema.sql;</code> จากโฟลเดอร์ <code>backend</code> แล้วรันทั้งสองฝั่ง</p><p class="check"><strong>ผ่านเมื่อ</strong> ทุกเครื่องรันได้ทั้งสองฝั่ง และเรียก <code>/health</code> ได้</p>
+</div></div><div class="step"><div class="n">5</div><div>
+<h3>กติกา Git ของทีม และฝึกแก้ conflict</h3>
+<p>ทุกคนทำงานบน <code>main</code> ทำตามลำดับนี้ทุกครั้ง</p><div class="code-wrap"><pre class="code">git pull            ก่อนเริ่มทำงานทุกครั้ง
+(ทำงาน ทดสอบให้ผ่าน)
+git add .
+git commit -m &quot;บอกว่าทำอะไร&quot;
+git pull            ดึงของเพื่อนมาก่อนส่ง
+git push</pre></div><p>ไฟล์ที่ใช้ร่วมกัน เช่น <code>server.js</code>, <code>router.js</code> และ <code>schema.sql</code> ให้คนแกนแก้คนเดียว ใครต้องการเพิ่มอะไร บอกคนแกน และหลังคนแกน push ไฟล์เหล่านี้ ทุกคน <code>git pull</code> ทันที</p><p>ฝึก conflict หนึ่งรอบ ทุกคนแก้บรรทัดแรกของ <code>README.md</code> เป็นชื่อตัวเอง แล้ว commit และ push ตามกันทีละคน คนที่สองเป็นต้นไปจะเจอ conflict ตอน <code>git pull</code> ให้เปิดไฟล์ใน VS Code กด Accept Both Changes แล้ว commit และ push</p><p class="check"><strong>ผ่านเมื่อ</strong> ทุกคนแก้ conflict เองได้หนึ่งครั้ง และ <code>README.md</code> บน GitLab มีชื่อครบทุกคน</p>
+</div></div></section>
+<section><h2>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h2><details><summary><code>SOURCE</code> แล้วขึ้น <code>Failed to open file</code></summary><p>terminal เปิดอยู่ที่โฟลเดอร์ <code>backend</code> ก่อนพิมพ์ <code>mysql</code> หรือเปล่า</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ใช้ path เต็มแทนได้ เช่น <code>SOURCE C:/Users/ชื่อ/evaluation-system/backend/sql/schema.sql;</code> ใช้ทับขวา <code>/</code> ไม่ใช่ <code>\</code></p></details></details><details><summary>สร้างตารางแล้วขึ้น <code>Failed to open the referenced table</code></summary><p>ตารางลูกถูกสร้างก่อนตารางแม่</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>เรียง <code>CREATE TABLE</code> ใหม่ ตารางที่ถูกอ้างถึงต้องมาก่อนตารางที่อ้างถึงมัน</p></details></details><details><summary>Route ใหม่ในไฟล์ routes ได้ 404</summary><p>path ในไฟล์ routes ไม่ต้องใส่ส่วนหน้า เช่นใน <code>routes/hr.js</code> เขียน <code>/rounds</code> ไม่ใช่ <code>/hr/rounds</code></p><details><summary>คำใบ้ชั้นที่ 2</summary><p>และดูว่า <code>server.js</code> มีบรรทัด <code>app.use</code> ของไฟล์นั้นแล้ว</p></details></details><details><summary><code>git pull</code> แล้วขึ้นหน้าจอแปลก ๆ ให้พิมพ์ข้อความ</summary><p>Git เปิดโปรแกรมแก้ข้อความ merge ให้ พิมพ์ <code>:wq</code> แล้ว Enter เพื่อบันทึกและออก</p></details><details><summary><code>git push</code> ถูกปฏิเสธว่า rejected</summary><p>มีเพื่อน push ก่อนหน้าเรา ให้ <code>git pull</code> ก่อนแล้วค่อย push ใหม่</p></details></section>
+<section id="quiz"><h2>ทายผลก่อนกดส่ง</h2><p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p><div id="quizBox"></div></section>
+<section><h2>Exit Ticket</h2><p>ตรวจทั้งทีมพร้อมกัน จารย์สุ่มถามรายคนในข้อสุดท้าย</p>
+<div class="sheet ticket" id="ticket"><label><input type="checkbox"><span>บน GitLab มี <code>docs/use-case.drawio</code> และ <code>docs/er.drawio</code></span></label><label><input type="checkbox"><span>ทุกเครื่องรัน <code>SOURCE sql/schema.sql;</code> ได้ และเห็นตารางครบตามแผนภาพ</span></label><label><input type="checkbox"><span><code>docs/api.md</code> มี Endpoint ของทั้ง 3 กลุ่ม ทุกแถวมีสิทธิ์และ Status code</span></label><label><input type="checkbox"><span>ทุกคน clone แล้วรันได้ทั้งสองฝั่งบนเครื่องตัวเอง</span></label><label><input type="checkbox"><span>ทุกคนแก้ conflict ได้เองหนึ่งครั้ง</span></label><label><input type="checkbox"><span>แต่ละคนอธิบายตารางและ Endpoint ของกลุ่มตัวเองได้ และบอกได้ว่าต้องใช้ข้อมูลอะไรจากเพื่อน</span></label><div class="ticket-state" id="ticketState" aria-live="polite"></div></div><p class="sub">ครั้งถัดไป: แต่ละคนเริ่มงานชุดแรกของกลุ่มตัวเอง แล้วรวมงานกันท้ายคาบ</p></section>
+</main>
+<script>
+const PAGE = {"game": {"type": "sort", "done": "ถูกทั้งหมด เห็นไหมว่าผู้รับการประเมินกับกรรมการต้องมีตารางกลาง", "options": ["หนึ่งต่อหลาย", "หลายต่อหลาย"], "items": [{"t": "รอบประเมินหนึ่งรอบ กับหัวข้อการประเมิน", "a": 0}, {"t": "หัวข้อหนึ่งหัวข้อ กับตัวชี้วัด", "a": 0}, {"t": "ผู้รับการประเมิน กับกรรมการ (กรรมการหนึ่งคนประเมินได้หลายคน และผู้รับการประเมินหนึ่งคนมีกรรมการหลายคน)", "a": 1}, {"t": "ผลงานหนึ่งรายการ กับไฟล์หลักฐาน", "a": 0}, {"t": "ตัวชี้วัดหนึ่งตัว กับผลงานที่ผู้รับการประเมินกรอก", "a": 0}, {"t": "ผู้รับการประเมิน กับตัวชี้วัดที่ต้องประเมินตนเอง", "a": 1}]}, "quiz": [{"q": "ถ้าตาราง indicators ไม่มี Foreign Key ไปที่ topics แล้วลบหัวข้อทิ้ง จะเกิดอะไร", "opts": ["ตัวชี้วัดหายตามไปเอง", "ตัวชี้วัดยังอยู่ แต่ชี้ไปหาหัวข้อที่ไม่มีแล้ว", "MySQL ไม่ยอมให้ลบ", "ไม่มีอะไรเกิดขึ้น ข้อมูลถูกต้องทุกอย่าง"], "a": 1, "why": "Foreign Key กับ ON DELETE CASCADE ทำให้ข้อมูลลูกไม่หลุดลอย"}, {"q": "ทำไมทีมต้องตกลงรูปแบบ JSON กันก่อนเขียนโค้ด", "opts": ["เพื่อให้เอกสารยาวขึ้น", "เพราะคนทำหน้าเว็บกับคนทำ API ต้องใช้ชื่อ field เดียวกัน ไม่งั้นรวมงานแล้วข้อมูลไม่ขึ้น", "เพราะ MySQL บังคับ", "ไม่จำเป็น"], "a": 1, "why": "ปัญหารวมงานส่วนใหญ่ในวันแข่งคือชื่อ field ไม่ตรงกัน"}, {"q": "ทำไมให้คนแกนแก้ server.js กับ schema.sql คนเดียว", "opts": ["เพราะคนแกนเก่งที่สุด", "เพราะไฟล์ที่หลายคนแก้พร้อมกันเกิด conflict บ่อย", "เพราะ Git บังคับ", "ไม่มีเหตุผล"], "a": 1, "why": "เจ้าของไฟล์ชัดเจน conflict น้อย รวมงานเร็ว"}, {"q": "git push แล้วถูกปฏิเสธว่า rejected ควรทำอะไรก่อน", "opts": ["ลบ repo แล้ว clone ใหม่", "git pull เพื่อดึงงานของเพื่อนมารวมก่อน แล้วค่อย push", "push ซ้ำไปเรื่อย ๆ", "ส่งไฟล์ให้เพื่อนทาง USB"], "a": 1, "why": "แปลว่ามีงานใหม่บน GitLab ที่เครื่องเรายังไม่มี"}]};
+
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fb = document.getElementById('gameFb');
+function say(ok, msg){ fb.className = 'feedback ' + (ok ? 'ok' : 'bad'); fb.textContent = msg; }
+function clearSay(){ fb.className = 'feedback'; fb.textContent = ''; }
+
+function mcq(boxId, items, wrongMsg){
+  const box = document.getElementById(boxId);
+  items.forEach((item, qi) => {
+    const wrap = document.createElement('div'); wrap.className = 'sheet q';
+    const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+    p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
+    if (item.code) { const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = item.code; wrap.appendChild(pre); }
+    const opts = document.createElement('div'); opts.className = 'opts';
+    const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+    item.opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => {
+        [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+        if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+        else { b.classList.add('picked-bad'); why.textContent = wrongMsg; }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+  });
+}
+
+const G = PAGE.game;
+if (G.type === 'mcq') {
+  mcq('gameBox', G.items, 'ยังไม่ใช่ ลองคิดอีกที');
+  document.getElementById('checkGame').style.display = 'none';
+  document.getElementById('resetGame').style.display = 'none';
+}
+if (G.type === 'reorder') {
+  const pool = document.getElementById('pool'), answer = document.getElementById('answer');
+  const chip = t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t;
+    b.addEventListener('click', () => { b.classList.remove('wrong','right'); (b.parentElement === pool ? answer : pool).appendChild(b); clearSay(); }); return b; };
+  const reset = () => { pool.innerHTML = ''; answer.innerHTML = ''; let s = shuffle(G.lines); if (s.every((t,i)=>t===G.lines[i])) s = s.reverse(); s.forEach(t => pool.appendChild(chip(t))); clearSay(); };
+  document.getElementById('resetGame').addEventListener('click', reset);
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const placed = [...answer.children]; placed.forEach(c => c.classList.remove('wrong','right'));
+    if (placed.length < G.lines.length) return say(false, 'ยังวางไม่ครบ เหลืออีก ' + (G.lines.length - placed.length) + ' บรรทัด');
+    const w = placed.findIndex((c, i) => c.textContent !== G.lines[i]);
+    if (w === -1) { placed.forEach(c => c.classList.add('right')); return say(true, G.done); }
+    placed.forEach((c, i) => { if (i < w) c.classList.add('right'); }); placed[w].classList.add('wrong');
+    say(false, 'ถูกถึงบรรทัดที่ ' + w + ' บรรทัดที่ ' + (w + 1) + ' ยังไม่ใช่ คำใบ้: ' + G.hints[w]);
+  });
+  reset();
+}
+if (G.type === 'sort') {
+  const box = document.getElementById('sortBox'); const picks = new Array(G.items.length).fill(-1);
+  shuffle(G.items.map((_, i) => i)).forEach(idx => {
+    const row = document.createElement('div'); row.className = 'sort-row'; row.dataset.idx = idx;
+    const t = document.createElement(G.mono ? 'code' : 'div'); t.className = 'txt'; t.textContent = G.items[idx].t;
+    const seg = document.createElement('div'); seg.className = 'seg';
+    G.options.forEach((o, oi) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => { picks[idx] = oi; [...seg.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); row.classList.remove('ok','bad'); clearSay(); });
+      seg.appendChild(b); });
+    row.appendChild(t); row.appendChild(seg); box.appendChild(row);
+  });
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const rows = [...box.children]; rows.forEach(r => r.classList.remove('ok','bad'));
+    const empty = picks.filter(p => p === -1).length;
+    if (empty) return say(false, 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ข้อ');
+    let wrong = 0; rows.forEach(r => { const i = +r.dataset.idx; if (picks[i] === G.items[i].a) r.classList.add('ok'); else { r.classList.add('bad'); wrong++; } });
+    if (wrong) say(false, 'ผิด ' + wrong + ' ข้อ ข้อที่มีแถบแดงลองคิดใหม่'); else say(true, G.done);
+  });
+  document.getElementById('resetGame').addEventListener('click', () => { picks.fill(-1); [...box.children].forEach(r => { r.classList.remove('ok','bad'); r.querySelectorAll('button').forEach(b => b.classList.remove('on')); }); clearSay(); });
+}
+
+mcq('quizBox', PAGE.quiz, 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล');
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+state.textContent = 'ยังเหลือ ' + boxes.length + ' ข้อ';
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>

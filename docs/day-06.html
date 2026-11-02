@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 6: ตรวจสิทธิ์ตามบทบาท</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+.blank{font:inherit;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--sheet);color:var(--text);border:2px solid var(--ink);border-radius:4px;padding:1px 4px;margin:0 2px}
+.sort-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.sort-row .txt{font-size:15px;word-break:break-word}
+.seg{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.seg button{font:inherit;font-size:14px;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:var(--sheet);color:var(--text);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sort-row.ok{box-shadow:inset 4px 0 0 var(--ok);padding-left:10px}
+.sort-row.bad{box-shadow:inset 4px 0 0 var(--bad);padding-left:10px}
+@media (max-width:640px){.sort-row{grid-template-columns:1fr}.seg{justify-content:flex-start}}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0}
+.flow span{background:var(--sheet);border:1px solid var(--ink);border-radius:4px;padding:4px 10px;font-size:15px}
+.flow em{font-style:normal;color:var(--muted)}
+.part{margin-top:64px;padding-top:8px;border-top:3px double var(--ink)}
+.part-label{font-size:15px;color:var(--muted);margin-bottom:2px}
+.part h2{margin-top:0}
+.role-card{background:var(--sheet);border:1px solid var(--line);border-top:5px solid var(--ink);border-radius:6px;padding:18px 20px;margin:20px 0}
+.role-card h3{margin-top:0}
+.role-card .who{color:var(--muted);font-size:15px;margin-bottom:8px}
+.tree{white-space:pre}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+<p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 6 จาก 16</p><h1>ตรวจ token และสิทธิ์ตามบทบาท</h1><p class="goal">วันนี้ปิดระบบเล็กครบวงจร Express ต้องตรวจว่าใครเรียกและมีสิทธิ์ทำสิ่งนั้นไหมก่อนให้เข้าถึงข้อมูล หน้าเว็บแยกเป็นหน้าของแต่ละบทบาท</p><div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+<div><div class="who">กรรมการพยายามเพิ่มตัวชี้วัด</div><pre>POST /indicators
+Authorization: Bearer (token ของ com1)
+{
+  &quot;title&quot;: &quot;ตัวชี้วัดแอบเพิ่ม&quot;,
+  &quot;weight&quot;: 10
+}</pre></div>
+<div><div class="who">Express ไม่ยอม</div><pre><span class="status">403 Forbidden</span>
+{
+  &quot;message&quot;: &quot;ไม่มีสิทธิ์เข้าถึง&quot;
+}</pre></div></div></header>
+<section><h2>ตารางวันนี้</h2><ol class="schedule"><li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมเลือก Status code</span></li><li><span class="min">20 นาที</span><span>เรื่องใหม่: Middleware, 401 กับ 403 และ Router</span></li><li><span class="min">60 นาที</span><span>ส่วนที่ 1: Express ตรวจ token และสิทธิ์</span></li><li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li><li><span class="min">75 นาที</span><span>ส่วนที่ 2: Vue แยกหน้าตามบทบาท</span></li><li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li><li><span class="min">40 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li></ol></section>
+<section id="game"><h2>เกม: สถานการณ์นี้ได้ Status code อะไร</h2><p>ห้ามเปิดไฟล์ดู เลือก Status code ที่ Express ของเราควรตอบในแต่ละสถานการณ์</p><div class="sheet"><div id="sortBox"></div>
+<div class="btns"><button class="act" id="checkGame">ตรวจคำตอบ</button><button class="act ghost" id="resetGame">เริ่มใหม่</button></div>
+<div class="feedback" id="gameFb" aria-live="polite"></div></div></section>
+<section><h2>เรื่องใหม่วันนี้</h2><h3>Middleware คือด่านตรวจ</h3>
+<div class="flow"><span>Request เข้ามา</span><em>ผ่านด่าน</em><span>requireAuth มี token ถูกต้องไหม</span><em>ผ่านด่าน</em><span>requireRole บทบาทนี้มีสิทธิ์ไหม</span><em>ผ่านหมด</em><span>Route ทำงาน</span></div>
+<p>Middleware คือฟังก์ชันที่ทำงานก่อน Route ถ้าไม่ผ่าน จะตอบกลับไปเลยโดยไม่ให้ถึง Route ถ้าผ่าน จะเรียก <code>next()</code> เพื่อส่งต่อด่านถัดไป</p>
+<h3>401 กับ 403 ต่างกัน</h3>
+<div class="tbl"><table><thead><tr><th>Code</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr></thead><tbody>
+<tr><td><code>401</code></td><td>ไม่รู้ว่าเป็นใคร</td><td>ไม่แนบ token หรือ token ปลอมหรือหมดอายุ</td></tr>
+<tr><td><code>403</code></td><td>รู้ว่าเป็นใคร แต่ไม่มีสิทธิ์</td><td>กรรมการพยายามเพิ่มตัวชี้วัด</td></tr></tbody></table></div>
+<h3>หน้าเว็บส่ง token ยังไง</h3>
+<p>ทุก request ที่ต้อง Login แนบ header ชื่อ <code>Authorization</code> ค่าเป็น <code>Bearer</code> เว้นวรรคแล้วตามด้วย token เราจะเขียนฟังก์ชัน <code>api()</code> ไว้ที่เดียวให้แนบให้อัตโนมัติ</p>
+<h3>Vue Router</h3>
+<p>แยกหน้าเป็นไฟล์ตามบทบาท แต่ละหน้ามี URL ของตัวเอง เช่น <code>/hr/indicators</code> และมีด่านตรวจฝั่งหน้าเว็บที่พาไปหน้าของบทบาทตัวเอง ด่านนี้ช่วยให้ใช้งานสะดวกเท่านั้น ไม่ได้กันข้อมูล คนที่กันข้อมูลจริงคือ Express</p></section>
+<section class="part"><p class="part-label">ส่วนที่ 1 (60 นาที)</p><h2>Express ตรวจ token และสิทธิ์</h2><div class="step"><div class="n">1</div><div>
+<h3>สร้าง Middleware</h3>
+<p>ใน <code>backend</code> สร้างโฟลเดอร์ <code>middleware</code> แล้วสร้างไฟล์ <code>middleware/auth.js</code></p><div class="code-wrap"><pre class="code">const jwt = require(&#x27;jsonwebtoken&#x27;);
+const { JWT_SECRET } = require(&#x27;../config&#x27;);
+
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization || &#x27;&#x27;;
+  const [type, token] = header.split(&#x27; &#x27;);
+  if (type !== &#x27;Bearer&#x27; || !token) {
+    return res.status(401).json({ message: &#x27;กรุณาเข้าสู่ระบบ&#x27; });
+  }
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: &#x27;token ไม่ถูกต้องหรือหมดอายุ&#x27; });
+  }
+}
+
+function requireRole(...roles) {
+  return (req, res, next) =&gt; {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: &#x27;ไม่มีสิทธิ์เข้าถึง&#x27; });
+    }
+    next();
+  };
+}
+
+module.exports = { requireAuth, requireRole };</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>ใส่ด่านให้ Route</h3>
+<p>ในไฟล์เซิร์ฟเวอร์ ดึง Middleware มาใช้</p><div class="code-wrap"><pre class="code">const { requireAuth, requireRole } = require(&#x27;./middleware/auth&#x27;);</pre><button class="copy">คัดลอก</button></div><p>ใส่ด่านไว้ระหว่าง path กับฟังก์ชันของ Route ทุกบทบาทที่ Login ดูตัวชี้วัดได้ แต่เพิ่ม แก้ ลบได้เฉพาะงานบุคลากร</p><div class="code-wrap"><pre class="code">app.get(&#x27;/indicators&#x27;, requireAuth, async (req, res) =&gt; { ... });
+app.get(&#x27;/indicators/:id&#x27;, requireAuth, async (req, res) =&gt; { ... });
+app.post(&#x27;/indicators&#x27;, requireAuth, requireRole(&#x27;hr&#x27;), async (req, res) =&gt; { ... });
+app.put(&#x27;/indicators/:id&#x27;, requireAuth, requireRole(&#x27;hr&#x27;), async (req, res) =&gt; { ... });
+app.delete(&#x27;/indicators/:id&#x27;, requireAuth, requireRole(&#x27;hr&#x27;), async (req, res) =&gt; { ... });</pre></div><p>Route ของ <code>/evaluatees</code> ทั้งหมดใส่ <code>requireAuth, requireRole('hr')</code> ส่วน <code>/health</code>, <code>/auth/login</code> และ <code>/auth/register</code> ไม่ต้องใส่ แล้วเพิ่ม Route นี้ไว้ให้หน้าเว็บถามว่าตอนนี้เป็นใคร</p><div class="code-wrap"><pre class="code">app.get(&#x27;/auth/me&#x27;, requireAuth, (req, res) =&gt; {
+  res.json(req.user);
+});</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>ทดสอบด้วย Thunder Client</h3>
+<p>Login ด้วย <code>hr1</code> คัดลอก token แล้วไปแท็บ Auth เลือก Bearer วาง token ลองเรียกแต่ละแบบ ทำซ้ำกับ token ของ <code>com1</code></p><p class="check"><strong>ผ่านเมื่อ</strong> ไม่แนบ token ได้ 401, token ของ <code>com1</code> GET <code>/indicators</code> ได้ 200 แต่ POST ได้ 403, token ของ <code>hr1</code> POST ได้ 201, แก้ token ให้ผิดไปหนึ่งตัวได้ 401 จากนั้น commit และ push</p>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 2 (75 นาที)</p><h2>Vue แยกหน้าตามบทบาท</h2><p>ทำใน <code>frontend</code> ผลลัพธ์คือ Login แล้วไปหน้าของบทบาทตัวเองอัตโนมัติ</p><div class="step"><div class="n">1</div><div>
+<h3>ติดตั้ง Router และฟังก์ชันเรียก API ตัวกลาง</h3>
+<div class="code-wrap"><pre class="code">npm install vue-router</pre><button class="copy">คัดลอก</button></div><p>สร้าง <code>src/api.js</code> ทุกหน้าเรียก API ผ่านฟังก์ชันนี้ จะได้แนบ token และจัดการ error เหมือนกันทุกที่</p><div class="code-wrap"><pre class="code">const API = import.meta.env.VITE_API_URL
+
+export async function api(path, options = {}) {
+  const token = localStorage.getItem(&#x27;token&#x27;)
+  const res = await fetch(`${API}${path}`, {
+    ...options,
+    headers: {
+      &#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers
+    }
+  })
+  const data = await res.json().catch(() =&gt; ({}))
+  if (res.status === 401 &amp;&amp; token) {
+    localStorage.removeItem(&#x27;token&#x27;)
+    localStorage.removeItem(&#x27;user&#x27;)
+    window.location.href = &#x27;/login&#x27;
+  }
+  if (!res.ok) throw new Error(data.message || &#x27;เกิดข้อผิดพลาด&#x27;)
+  return data
+}</pre><button class="copy">คัดลอก</button></div><p>สร้าง <code>src/roles.js</code> บอกว่าแต่ละบทบาทมีหน้าแรกที่ไหน</p><div class="code-wrap"><pre class="code">export const homeByRole = {
+  hr: &#x27;/hr/indicators&#x27;,
+  evaluatee: &#x27;/evaluatee&#x27;,
+  committee: &#x27;/committee&#x27;
+}</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>ตั้ง Router และด่านตรวจหน้าเว็บ</h3>
+<p>สร้าง <code>src/router.js</code></p><div class="code-wrap"><pre class="code">import { createRouter, createWebHistory } from &#x27;vue-router&#x27;
+import { homeByRole } from &#x27;./roles&#x27;
+import LoginPage from &#x27;./pages/LoginPage.vue&#x27;
+import IndicatorsPage from &#x27;./pages/hr/IndicatorsPage.vue&#x27;
+import EvaluateeHome from &#x27;./pages/evaluatee/EvaluateeHome.vue&#x27;
+import CommitteeHome from &#x27;./pages/committee/CommitteeHome.vue&#x27;
+
+const routes = [
+  { path: &#x27;/login&#x27;, component: LoginPage },
+  { path: &#x27;/hr/indicators&#x27;, component: IndicatorsPage, meta: { role: &#x27;hr&#x27; } },
+  { path: &#x27;/evaluatee&#x27;, component: EvaluateeHome, meta: { role: &#x27;evaluatee&#x27; } },
+  { path: &#x27;/committee&#x27;, component: CommitteeHome, meta: { role: &#x27;committee&#x27; } },
+  { path: &#x27;/:pathMatch(.*)*&#x27;, redirect: &#x27;/login&#x27; }
+]
+
+const router = createRouter({ history: createWebHistory(), routes })
+
+router.beforeEach((to) =&gt; {
+  const user = JSON.parse(localStorage.getItem(&#x27;user&#x27;) || &#x27;null&#x27;)
+  if (to.path === &#x27;/login&#x27;) return user ? homeByRole[user.role] : true
+  if (!user) return &#x27;/login&#x27;
+  if (to.meta.role &amp;&amp; to.meta.role !== user.role) return homeByRole[user.role]
+  return true
+})
+
+export default router</pre><button class="copy">คัดลอก</button></div><p>แก้ <code>src/main.js</code> ให้ใช้ Router</p><div class="code-wrap"><pre class="code">import { createApp } from &#x27;vue&#x27;
+import App from &#x27;./App.vue&#x27;
+import router from &#x27;./router&#x27;
+
+createApp(App).use(router).mount(&#x27;#app&#x27;)</pre><button class="copy">คัดลอก</button></div><p>ก่อนแก้ <code>App.vue</code> ให้คัดลอกของเดิมเก็บไว้ในไฟล์ <code>src/OldApp.vue</code> ก่อน จะได้หยิบโค้ดไปใช้ต่อ แล้วแทน <code>App.vue</code> ด้วย</p><div class="code-wrap"><pre class="code">&lt;template&gt;
+  &lt;RouterView /&gt;
+&lt;/template&gt;</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>หน้า Login</h3>
+<p>สร้าง <code>src/pages/LoginPage.vue</code></p><div class="code-wrap"><pre class="code">&lt;script setup&gt;
+import { ref } from &#x27;vue&#x27;
+import { useRouter } from &#x27;vue-router&#x27;
+import { api } from &#x27;../api&#x27;
+import { homeByRole } from &#x27;../roles&#x27;
+
+const router = useRouter()
+const form = ref({ username: &#x27;&#x27;, password: &#x27;&#x27; })
+const errorMsg = ref(&#x27;&#x27;)
+
+async function login() {
+  errorMsg.value = &#x27;&#x27;
+  try {
+    const data = await api(&#x27;/auth/login&#x27;, {
+      method: &#x27;POST&#x27;,
+      body: JSON.stringify(form.value)
+    })
+    localStorage.setItem(&#x27;token&#x27;, data.token)
+    localStorage.setItem(&#x27;user&#x27;, JSON.stringify(data.user))
+    router.push(homeByRole[data.user.role])
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;main&gt;
+    &lt;h1&gt;เข้าสู่ระบบ&lt;/h1&gt;
+    &lt;form @submit.prevent=&quot;login&quot;&gt;
+      &lt;input v-model=&quot;form.username&quot; placeholder=&quot;ชื่อผู้ใช้&quot; required&gt;
+      &lt;input v-model=&quot;form.password&quot; type=&quot;password&quot; placeholder=&quot;รหัสผ่าน&quot; required&gt;
+      &lt;button type=&quot;submit&quot;&gt;เข้าสู่ระบบ&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;p v-if=&quot;errorMsg&quot; style=&quot;color: red&quot;&gt;{{ errorMsg }}&lt;/p&gt;
+  &lt;/main&gt;
+&lt;/template&gt;</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">4</div><div>
+<h3>หน้าตัวชี้วัดของงานบุคลากร</h3>
+<p>สร้าง <code>src/pages/hr/IndicatorsPage.vue</code> ย้ายส่วนตัวชี้วัดจาก <code>OldApp.vue</code> มา แล้วเปลี่ยนจาก <code>fetch</code> เป็น <code>api()</code> โครงเป็นแบบนี้</p><div class="code-wrap"><pre class="code">&lt;script setup&gt;
+import { ref, onMounted } from &#x27;vue&#x27;
+import { useRouter } from &#x27;vue-router&#x27;
+import { api } from &#x27;../../api&#x27;
+
+const router = useRouter()
+const user = JSON.parse(localStorage.getItem(&#x27;user&#x27;) || &#x27;null&#x27;)
+const indicators = ref([])
+const form = ref({ title: &#x27;&#x27;, weight: 1 })
+const editingId = ref(null)
+const errorMsg = ref(&#x27;&#x27;)
+
+async function load() {
+  try {
+    indicators.value = await api(&#x27;/indicators&#x27;)
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}
+
+async function save() {
+  errorMsg.value = &#x27;&#x27;
+  try {
+    const path = editingId.value ? `/indicators/${editingId.value}` : &#x27;/indicators&#x27;
+    const method = editingId.value ? &#x27;PUT&#x27; : &#x27;POST&#x27;
+    await api(path, { method, body: JSON.stringify(form.value) })
+    cancelEdit()
+    await load()
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}
+
+function startEdit(item) {
+  editingId.value = item.id
+  form.value = { title: item.title, weight: item.weight }
+}
+
+function cancelEdit() {
+  editingId.value = null
+  form.value = { title: &#x27;&#x27;, weight: 1 }
+}
+
+async function remove(id) {
+  if (!confirm(&#x27;ยืนยันการลบ?&#x27;)) return
+  try {
+    await api(`/indicators/${id}`, { method: &#x27;DELETE&#x27; })
+    await load()
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}
+
+function logout() {
+  localStorage.removeItem(&#x27;token&#x27;)
+  localStorage.removeItem(&#x27;user&#x27;)
+  router.push(&#x27;/login&#x27;)
+}
+
+onMounted(load)
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;main&gt;
+    &lt;p&gt;สวัสดี {{ user?.full_name }} &lt;button @click=&quot;logout&quot;&gt;ออกจากระบบ&lt;/button&gt;&lt;/p&gt;
+    &lt;h1&gt;ตัวชี้วัด&lt;/h1&gt;
+    &lt;form @submit.prevent=&quot;save&quot;&gt;
+      &lt;input v-model=&quot;form.title&quot; placeholder=&quot;ชื่อตัวชี้วัด&quot;&gt;
+      &lt;input v-model.number=&quot;form.weight&quot; type=&quot;number&quot; placeholder=&quot;น้ำหนัก&quot;&gt;
+      &lt;button type=&quot;submit&quot;&gt;{{ editingId ? &#x27;บันทึกการแก้ไข&#x27; : &#x27;เพิ่ม&#x27; }}&lt;/button&gt;
+      &lt;button v-if=&quot;editingId&quot; type=&quot;button&quot; @click=&quot;cancelEdit&quot;&gt;ยกเลิก&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;p v-if=&quot;errorMsg&quot; style=&quot;color: red&quot;&gt;{{ errorMsg }}&lt;/p&gt;
+    &lt;table border=&quot;1&quot; cellpadding=&quot;6&quot;&gt;
+      &lt;thead&gt;&lt;tr&gt;&lt;th&gt;ลำดับ&lt;/th&gt;&lt;th&gt;ตัวชี้วัด&lt;/th&gt;&lt;th&gt;น้ำหนัก&lt;/th&gt;&lt;th&gt;จัดการ&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr v-for=&quot;item in indicators&quot; :key=&quot;item.id&quot;&gt;
+          &lt;td&gt;{{ item.id }}&lt;/td&gt;
+          &lt;td&gt;{{ item.title }}&lt;/td&gt;
+          &lt;td&gt;{{ item.weight }}&lt;/td&gt;
+          &lt;td&gt;
+            &lt;button @click=&quot;startEdit(item)&quot;&gt;แก้ไข&lt;/button&gt;
+            &lt;button @click=&quot;remove(item.id)&quot;&gt;ลบ&lt;/button&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/main&gt;
+&lt;/template&gt;</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">5</div><div>
+<h3>หน้าแรกของผู้รับการประเมินและกรรมการ</h3>
+<p>ตอนนี้ทำเป็นหน้าทักทายไว้ก่อน ช่วงที่ 2 แต่ละคนจะมาเติมงานจริงลงหน้าเหล่านี้ สร้าง <code>src/pages/evaluatee/EvaluateeHome.vue</code></p><div class="code-wrap"><pre class="code">&lt;script setup&gt;
+import { useRouter } from &#x27;vue-router&#x27;
+
+const router = useRouter()
+const user = JSON.parse(localStorage.getItem(&#x27;user&#x27;) || &#x27;null&#x27;)
+
+function logout() {
+  localStorage.removeItem(&#x27;token&#x27;)
+  localStorage.removeItem(&#x27;user&#x27;)
+  router.push(&#x27;/login&#x27;)
+}
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;main&gt;
+    &lt;h1&gt;หน้าผู้รับการประเมิน&lt;/h1&gt;
+    &lt;p&gt;สวัสดี {{ user?.full_name }}&lt;/p&gt;
+    &lt;button @click=&quot;logout&quot;&gt;ออกจากระบบ&lt;/button&gt;
+  &lt;/main&gt;
+&lt;/template&gt;</pre><button class="copy">คัดลอก</button></div><p>คัดลอกไฟล์นี้ไปเป็น <code>src/pages/committee/CommitteeHome.vue</code> แล้วเปลี่ยนหัวข้อเป็น หน้ากรรมการผู้ประเมิน</p><p class="check"><strong>ผ่านเมื่อ</strong> Login <code>hr1</code> ไปหน้าตัวชี้วัด, <code>eva1</code> ไปหน้าผู้รับการประเมิน, <code>com1</code> ไปหน้ากรรมการ และ <code>com1</code> พิมพ์ <code>/hr/indicators</code> ในช่อง URL เองจะถูกพากลับหน้ากรรมการ จากนั้น commit และ push</p>
+</div></div><h3>ใครเสร็จก่อน</h3><p>ย้ายส่วนรายชื่อผู้รับการประเมินจาก <code>OldApp.vue</code> ไปเป็นหน้า <code>/hr/evaluatees</code> ของงานบุคลากร ใช้ <code>api()</code> และเพิ่มลิงก์สลับระหว่างสองหน้าด้วย <code>&lt;RouterLink to="/hr/evaluatees"&gt;</code> เสร็จแล้วลบ <code>OldApp.vue</code> ทิ้ง</p><p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p></section>
+<section><h2>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h2><details><summary>มี token แล้วแต่ยังได้ 401</summary><p>header ที่ส่งไปหน้าตาถูกไหม เปิด F12 แท็บ Network คลิก request ดู Request Headers</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ต้องเป็น <code>Authorization: Bearer eyJ...</code> มีคำว่า Bearer เว้นวรรคหนึ่งที และ <code>JWT_SECRET</code> ที่ใช้ตรวจต้องเป็นตัวเดียวกับตอนออก token</p></details></details><details><summary>Error ขึ้นว่า <code>Cannot read properties of undefined (reading 'role')</code></summary><p><code>requireRole</code> ทำงานก่อน <code>requireAuth</code> หรือเปล่า</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ลำดับต้องเป็น <code>requireAuth, requireRole('hr')</code> เพราะ <code>req.user</code> ถูกสร้างใน <code>requireAuth</code></p></details></details><details><summary>Request ค้าง ไม่ตอบอะไรเลย</summary><p>Middleware ที่ผ่านแล้วลืมเรียก <code>next()</code> หรือเปล่า</p></details><details><summary>หน้าเว็บขาว Console ขึ้นว่าหาไฟล์ .vue ไม่เจอ</summary><p>path ใน <code>import</code> ของ <code>router.js</code> ตรงกับที่เก็บไฟล์จริงไหม ตัวพิมพ์เล็กใหญ่ต้องตรงกัน</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ไฟล์ใน <code>pages/hr/</code> ต้อง import <code>api</code> ด้วย <code>../../api</code> ไม่ใช่ <code>../api</code></p></details></details><details><summary>Login แล้วไม่ไปไหน</summary><p>ค่า <code>role</code> ของผู้ใช้ตรงกับชื่อใน <code>homeByRole</code> ไหม เช่น <code>hr</code> กับ <code>HR</code> ไม่เหมือนกัน</p></details><details><summary>รหัสผ่านผิดแล้วหน้ารีเฟรชเอง ไม่เห็นข้อความ</summary><p>ใน <code>api.js</code> เงื่อนไข 401 มี <code>&& token</code> หรือเปล่า ตอนยังไม่ Login ต้องไม่พาไปหน้า Login ซ้ำ</p></details></section>
+<section id="quiz"><h2>ทายผลก่อนกดส่ง</h2><p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p><div id="quizBox"></div></section>
+<section><h2>Exit Ticket</h2><p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนลงมือเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
+<div class="sheet ticket" id="ticket"><label><input type="checkbox"><span>ผู้ตรวจเรียก <code>GET /indicators</code> ด้วย Thunder Client โดยไม่แนบ token ได้ 401</span></label><label><input type="checkbox"><span>ผู้ตรวจใช้ token ของ <code>com1</code> ส่ง POST <code>/indicators</code> ได้ 403</span></label><label><input type="checkbox"><span>ผู้ตรวจใช้ token ของ <code>hr1</code> ส่ง POST <code>/indicators</code> ได้ 201</span></label><label><input type="checkbox"><span>ผู้ตรวจ Login ทั้ง 3 บทบาทจากหน้าเว็บ แต่ละบทบาทไปถูกหน้า และพิมพ์ URL ของบทบาทอื่นเองแล้วถูกพากลับ</span></label><label><input type="checkbox"><span>ผู้ตรวจลบ <code>token</code> ใน F12 แท็บ Application แล้วกดเพิ่มตัวชี้วัด ถูกพากลับหน้า Login</span></label><label><input type="checkbox"><span>เจ้าของอธิบายได้ว่าทำไม Express ต้องตรวจสิทธิ์เอง ทั้งที่หน้าเว็บมีด่านตรวจแล้ว</span></label><label><input type="checkbox"><span>บน GitLab มี commit ของวันนี้</span></label><div class="ticket-state" id="ticketState" aria-live="polite"></div></div><p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน วันนี้จบระบบเล็กครบวงจรแล้ว</p><p class="sub">ครั้งถัดไป (วันสำรอง): ทำระบบเล็กซ้ำจากศูนย์โดยปิดโค้ด</p></section>
+</main>
+<script>
+const PAGE = {"game": {"type": "sort", "done": "ถูกทั้งหมด วันนี้จะมี 403 เพิ่มเข้ามาอีกตัว", "options": ["200", "201", "400", "401", "404", "409", "500"], "items": [{"t": "ดูรายชื่อตัวชี้วัดทั้งหมดสำเร็จ", "a": 0}, {"t": "เพิ่มผู้รับการประเมินใหม่สำเร็จ", "a": 1}, {"t": "เพิ่มตัวชี้วัดโดยไม่ส่ง title มา", "a": 2}, {"t": "Login ด้วยรหัสผ่านผิด", "a": 3}, {"t": "แก้ไขผู้รับการประเมิน id 999 ที่ไม่มีอยู่", "a": 4}, {"t": "สมัครด้วยชื่อผู้ใช้ที่มีคนใช้แล้ว", "a": 5}, {"t": "รหัสผ่านใน db.js ผิด ต่อฐานข้อมูลไม่ได้", "a": 6}, {"t": "Login ด้วยชื่อผู้ใช้ที่ไม่มีในระบบ", "a": 3}]}, "quiz": [{"q": "กรรมการแก้โค้ดหน้าเว็บของตัวเองให้ข้ามด่านตรวจของ Router ได้ แล้วกดเพิ่มตัวชี้วัด จะเกิดอะไร", "opts": ["เพิ่มได้ เพราะผ่านด่านหน้าเว็บมาแล้ว", "Express ตอบ 403 เพราะตรวจบทบาทจาก token เอง", "ได้ 401", "ได้ 500"], "a": 1, "why": "ด่านหน้าเว็บช่วยเรื่องความสะดวก ส่วนการกันข้อมูลจริงอยู่ที่ Express เสมอ"}, {"q": "ทำไมต้องเขียน requireAuth ก่อน requireRole", "opts": ["เขียนสลับกันก็ได้", "เพราะ requireRole ใช้ req.user ซึ่งถูกสร้างใน requireAuth", "เพราะตัวอักษร A มาก่อน R", "เพราะ Express บังคับ"], "a": 1, "why": "ต้องรู้ก่อนว่าเป็นใคร ถึงจะตรวจได้ว่ามีสิทธิ์ไหม"}, {"q": "token หมดอายุระหว่างใช้งาน แล้วกดบันทึก จะเกิดอะไรในระบบของเรา", "opts": ["บันทึกได้ตามปกติ", "Express ตอบ 401 แล้ว api() ล้าง token และพากลับหน้า Login", "หน้าเว็บค้าง", "ได้ 403"], "a": 1, "why": "jwt.verify ตรวจเวลาหมดอายุให้ ไม่ผ่านก็เป็น 401"}, {"q": "ทำไมรวมการเรียก API ไว้ในฟังก์ชัน api() ที่เดียว", "opts": ["เพื่อให้ไฟล์เยอะขึ้น", "แนบ token และจัดการ error เหมือนกันทุกหน้า แก้ที่เดียวมีผลทุกที่", "เพราะ fetch ใช้ใน Vue ไม่ได้", "เพราะ Router บังคับ"], "a": 1, "why": "กรรมการดูเรื่องโครงสร้างโค้ดด้วย โค้ดซ้ำน้อย แก้ง่าย พลาดน้อย"}]};
+
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fb = document.getElementById('gameFb');
+function say(ok, msg){ fb.className = 'feedback ' + (ok ? 'ok' : 'bad'); fb.textContent = msg; }
+function clearSay(){ fb.className = 'feedback'; fb.textContent = ''; }
+
+function mcq(boxId, items, wrongMsg){
+  const box = document.getElementById(boxId);
+  items.forEach((item, qi) => {
+    const wrap = document.createElement('div'); wrap.className = 'sheet q';
+    const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+    p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
+    if (item.code) { const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = item.code; wrap.appendChild(pre); }
+    const opts = document.createElement('div'); opts.className = 'opts';
+    const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+    item.opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => {
+        [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+        if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+        else { b.classList.add('picked-bad'); why.textContent = wrongMsg; }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+  });
+}
+
+const G = PAGE.game;
+if (G.type === 'mcq') {
+  mcq('gameBox', G.items, 'ยังไม่ใช่ ลองคิดอีกที');
+  document.getElementById('checkGame').style.display = 'none';
+  document.getElementById('resetGame').style.display = 'none';
+}
+if (G.type === 'reorder') {
+  const pool = document.getElementById('pool'), answer = document.getElementById('answer');
+  const chip = t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t;
+    b.addEventListener('click', () => { b.classList.remove('wrong','right'); (b.parentElement === pool ? answer : pool).appendChild(b); clearSay(); }); return b; };
+  const reset = () => { pool.innerHTML = ''; answer.innerHTML = ''; let s = shuffle(G.lines); if (s.every((t,i)=>t===G.lines[i])) s = s.reverse(); s.forEach(t => pool.appendChild(chip(t))); clearSay(); };
+  document.getElementById('resetGame').addEventListener('click', reset);
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const placed = [...answer.children]; placed.forEach(c => c.classList.remove('wrong','right'));
+    if (placed.length < G.lines.length) return say(false, 'ยังวางไม่ครบ เหลืออีก ' + (G.lines.length - placed.length) + ' บรรทัด');
+    const w = placed.findIndex((c, i) => c.textContent !== G.lines[i]);
+    if (w === -1) { placed.forEach(c => c.classList.add('right')); return say(true, G.done); }
+    placed.forEach((c, i) => { if (i < w) c.classList.add('right'); }); placed[w].classList.add('wrong');
+    say(false, 'ถูกถึงบรรทัดที่ ' + w + ' บรรทัดที่ ' + (w + 1) + ' ยังไม่ใช่ คำใบ้: ' + G.hints[w]);
+  });
+  reset();
+}
+if (G.type === 'sort') {
+  const box = document.getElementById('sortBox'); const picks = new Array(G.items.length).fill(-1);
+  shuffle(G.items.map((_, i) => i)).forEach(idx => {
+    const row = document.createElement('div'); row.className = 'sort-row'; row.dataset.idx = idx;
+    const t = document.createElement(G.mono ? 'code' : 'div'); t.className = 'txt'; t.textContent = G.items[idx].t;
+    const seg = document.createElement('div'); seg.className = 'seg';
+    G.options.forEach((o, oi) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => { picks[idx] = oi; [...seg.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); row.classList.remove('ok','bad'); clearSay(); });
+      seg.appendChild(b); });
+    row.appendChild(t); row.appendChild(seg); box.appendChild(row);
+  });
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const rows = [...box.children]; rows.forEach(r => r.classList.remove('ok','bad'));
+    const empty = picks.filter(p => p === -1).length;
+    if (empty) return say(false, 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ข้อ');
+    let wrong = 0; rows.forEach(r => { const i = +r.dataset.idx; if (picks[i] === G.items[i].a) r.classList.add('ok'); else { r.classList.add('bad'); wrong++; } });
+    if (wrong) say(false, 'ผิด ' + wrong + ' ข้อ ข้อที่มีแถบแดงลองคิดใหม่'); else say(true, G.done);
+  });
+  document.getElementById('resetGame').addEventListener('click', () => { picks.fill(-1); [...box.children].forEach(r => { r.classList.remove('ok','bad'); r.querySelectorAll('button').forEach(b => b.classList.remove('on')); }); clearSay(); });
+}
+
+mcq('quizBox', PAGE.quiz, 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล');
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+state.textContent = 'ยังเหลือ ' + boxes.length + ' ข้อ';
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>

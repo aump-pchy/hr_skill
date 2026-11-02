@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 5: เข้าสู่ระบบด้วย JWT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+.blank{font:inherit;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--sheet);color:var(--text);border:2px solid var(--ink);border-radius:4px;padding:1px 4px;margin:0 2px}
+.sort-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.sort-row .txt{font-size:15px;word-break:break-word}
+.seg{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.seg button{font:inherit;font-size:14px;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:var(--sheet);color:var(--text);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sort-row.ok{box-shadow:inset 4px 0 0 var(--ok);padding-left:10px}
+.sort-row.bad{box-shadow:inset 4px 0 0 var(--bad);padding-left:10px}
+@media (max-width:640px){.sort-row{grid-template-columns:1fr}.seg{justify-content:flex-start}}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0}
+.flow span{background:var(--sheet);border:1px solid var(--ink);border-radius:4px;padding:4px 10px;font-size:15px}
+.flow em{font-style:normal;color:var(--muted)}
+.part{margin-top:64px;padding-top:8px;border-top:3px double var(--ink)}
+.part-label{font-size:15px;color:var(--muted);margin-bottom:2px}
+.part h2{margin-top:0}
+.role-card{background:var(--sheet);border:1px solid var(--line);border-top:5px solid var(--ink);border-radius:6px;padding:18px 20px;margin:20px 0}
+.role-card h3{margin-top:0}
+.role-card .who{color:var(--muted);font-size:15px;margin-bottom:8px}
+.tree{white-space:pre}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+<p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 5 จาก 16</p><h1>เข้ารหัสรหัสผ่าน และเข้าสู่ระบบด้วย JWT</h1><p class="goal">วันนี้ระบบเล็กจะมีผู้ใช้ 3 บทบาท รหัสผ่านเก็บเป็น hash ที่แปลงกลับไม่ได้ เข้าสู่ระบบแล้วได้ token ไว้ยืนยันตัวตน และหน้าเว็บมีฟอร์ม Login</p><div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+<div><div class="who">ส่งชื่อผู้ใช้และรหัสผ่าน</div><pre>POST /auth/login
+{
+  &quot;username&quot;: &quot;hr1&quot;,
+  &quot;password&quot;: &quot;password123&quot;
+}</pre></div>
+<div><div class="who">ได้ token กลับมา</div><pre><span class="status">200 OK</span>
+{
+  &quot;token&quot;: &quot;eyJhbGciOi...&quot;,
+  &quot;user&quot;: {
+    &quot;username&quot;: &quot;hr1&quot;,
+    &quot;role&quot;: &quot;hr&quot;
+  }
+}</pre></div></div></header>
+<section><h2>ตารางวันนี้</h2><ol class="schedule"><li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมเรียง Route PUT</span></li><li><span class="min">25 นาที</span><span>เรื่องใหม่: เข้ารหัสรหัสผ่าน, token และ JWT</span></li><li><span class="min">50 นาที</span><span>ส่วนที่ 1: ตารางผู้ใช้และสมัครสมาชิก</span></li><li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li><li><span class="min">50 นาที</span><span>ส่วนที่ 2: เข้าสู่ระบบและออก token</span></li><li><span class="min">40 นาที</span><span>ส่วนที่ 3: หน้าเข้าสู่ระบบด้วย Vue</span></li><li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li><li><span class="min">30 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li></ol></section>
+<section id="game"><h2>เกม: เรียง Route PUT ของเมื่อวาน</h2><p>ห้ามเปิดไฟล์เมื่อวานดู แตะบรรทัดทางซ้ายเพื่อวางต่อท้ายทางขวา แตะทางขวาเพื่อเอาคืน เรียงเสร็จแล้วกดตรวจ</p><div class="sheet"><div class="game-cols"><div><div class="zone-title">บรรทัดที่สลับไว้</div><div class="zone" id="pool"></div></div>
+<div><div class="zone-title">โปรแกรมของฉัน</div><div class="zone" id="answer"></div></div></div>
+<div class="btns"><button class="act" id="checkGame">ตรวจคำตอบ</button><button class="act ghost" id="resetGame">เริ่มใหม่</button></div>
+<div class="feedback" id="gameFb" aria-live="polite"></div></div></section>
+<section><h2>เรื่องใหม่วันนี้</h2><h3>ห้ามเก็บรหัสผ่านตรง ๆ</h3>
+<p>ถ้าฐานข้อมูลหลุด คนร้ายจะเห็นรหัสทุกคนทันที เราจึงเก็บแค่ <strong>hash</strong> ของรหัสผ่าน คือผลจากการแปลงรหัสแบบทางเดียว แปลงกลับไม่ได้ ตอนเข้าสู่ระบบ bcrypt จะเอารหัสที่พิมพ์มาเทียบกับ hash ให้ว่าตรงกันไหม</p>
+<h3>token คือบัตรผ่าน</h3>
+<div class="flow"><span>ส่งชื่อผู้ใช้และรหัสผ่าน</span><em>ถูกต้อง</em><span>Express ออก token</span><em>หน้าเว็บเก็บไว้</em><span>แนบ token ทุกครั้งที่เรียก API</span></div>
+<p>JWT เป็น token แบบหนึ่ง ข้างในมีข้อมูลเช่น id และบทบาทของผู้ใช้ และมีลายเซ็นที่สร้างจากรหัสลับของเซิร์ฟเวอร์ ใครแก้ข้อมูลข้างใน ลายเซ็นจะไม่ตรงทันที แต่ข้อมูลข้างในใครก็อ่านได้ จึงห้ามใส่รหัสผ่านหรือข้อมูลลับลงไป</p>
+<h3>ชนิดข้อมูลใหม่</h3>
+<p><code>ENUM('hr','evaluatee','committee')</code> คือคอลัมน์ที่รับได้แค่ค่าในรายการ ใช้กับบทบาทของผู้ใช้ ส่วน <code>BOOLEAN</code> เก็บจริงหรือเท็จ ใช้จำว่าต้องเปลี่ยนรหัสครั้งแรกหรือยัง และ <code>UNIQUE</code> คือห้ามซ้ำ ใช้กับชื่อผู้ใช้</p>
+<h3>Status code ใหม่</h3>
+<div class="tbl"><table><thead><tr><th>Code</th><th>ใช้เมื่อ</th></tr></thead><tbody>
+<tr><td><code>401</code></td><td>ยืนยันตัวตนไม่ผ่าน เช่น รหัสผ่านผิด หรือไม่มี token</td></tr>
+<tr><td><code>409</code></td><td>ข้อมูลชนกับที่มีอยู่แล้ว เช่น ชื่อผู้ใช้ซ้ำ</td></tr></tbody></table></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 1 (50 นาที)</p><h2>ตารางผู้ใช้และสมัครสมาชิก</h2><div class="step"><div class="n">1</div><div>
+<h3>สร้างตารางผู้ใช้</h3>
+<p>เข้า MySQL แล้ว <code>USE evaluation;</code> ก่อน</p><div class="code-wrap"><pre class="code">CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  role ENUM(&#x27;hr&#x27;,&#x27;evaluatee&#x27;,&#x27;committee&#x27;) NOT NULL,
+  must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+DESCRIBE users;</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> <code>DESCRIBE</code> เห็นครบ 7 คอลัมน์</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>ติดตั้งเครื่องมือ และเก็บรหัสลับไว้ที่เดียว</h3>
+<p>ในโฟลเดอร์ <code>backend</code></p><div class="code-wrap"><pre class="code">npm install bcryptjs jsonwebtoken</pre><button class="copy">คัดลอก</button></div><p>เราใช้ <code>bcryptjs</code> เพราะเขียนด้วย JavaScript ล้วน ติดตั้งได้ทุกเครื่องโดยไม่ต้องคอมไพล์ จากนั้นสร้างไฟล์ <code>config.js</code></p><div class="code-wrap"><pre class="code">module.exports = {
+  JWT_SECRET: &#x27;ltc-practice-secret-change-me&#x27;
+};</pre><button class="copy">คัดลอก</button></div><p>ในไฟล์เซิร์ฟเวอร์ เพิ่มไว้ด้านบนต่อจาก <code>require</code> อื่น ๆ</p><div class="code-wrap"><pre class="code">const bcrypt = require(&#x27;bcryptjs&#x27;);
+const jwt = require(&#x27;jsonwebtoken&#x27;);
+const { JWT_SECRET } = require(&#x27;./config&#x27;);</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>สมัครผู้ใช้</h3>
+<p>ในระบบจริง งานบุคลากรเป็นคนเพิ่มผู้ใช้ วันนี้ทำ Route นี้ไว้ก่อนเพื่อสร้างผู้ใช้ทดสอบ</p><div class="code-wrap"><pre class="code">app.post(&#x27;/auth/register&#x27;, async (req, res) =&gt; {
+  const { username, password, full_name, role } = req.body;
+  if (!username || !password || !full_name || !role) {
+    return res.status(400).json({ message: &#x27;กรุณากรอกข้อมูลให้ครบ&#x27; });
+  }
+  if (password.length &lt; 8) {
+    return res.status(400).json({ message: &#x27;รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร&#x27; });
+  }
+  if (![&#x27;hr&#x27;, &#x27;evaluatee&#x27;, &#x27;committee&#x27;].includes(role)) {
+    return res.status(400).json({ message: &#x27;บทบาทไม่ถูกต้อง&#x27; });
+  }
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+    const [result] = await pool.query(
+      &#x27;INSERT INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)&#x27;,
+      [username, passwordHash, full_name, role]
+    );
+    res.status(201).json({ id: result.insertId, username, full_name, role });
+  } catch (err) {
+    if (err.code === &#x27;ER_DUP_ENTRY&#x27;) {
+      return res.status(409).json({ message: &#x27;ชื่อผู้ใช้นี้มีแล้ว&#x27; });
+    }
+    console.error(err);
+    res.status(500).json({ message: &#x27;เกิดข้อผิดพลาดที่ฐานข้อมูล&#x27; });
+  }
+});</pre><button class="copy">คัดลอก</button></div><p>สมัครผู้ใช้ทดสอบ 3 คนด้วย Thunder Client รหัสผ่าน <code>password123</code> ทุกคน ใช้ชื่อผู้ใช้ <code>hr1</code>, <code>eva1</code> และ <code>com1</code> ตามบทบาท</p><div class="code-wrap"><pre class="code">{
+  &quot;username&quot;: &quot;hr1&quot;,
+  &quot;password&quot;: &quot;password123&quot;,
+  &quot;full_name&quot;: &quot;ฝ่ายบุคลากร ทดสอบ&quot;,
+  &quot;role&quot;: &quot;hr&quot;
+}</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> สมัครได้ 201 ครบ 3 คน, สมัคร <code>hr1</code> ซ้ำได้ 409, และ <code>SELECT username, password_hash FROM users;</code> เห็น hash ที่ขึ้นต้นด้วย <code>$2</code> ไม่ใช่รหัสผ่านจริง จากนั้น commit และ push</p>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 2 (50 นาที)</p><h2>เข้าสู่ระบบและออก token</h2><div class="step"><div class="n">1</div><div>
+<h3>Route เข้าสู่ระบบ</h3>
+<div class="code-wrap"><pre class="code">app.post(&#x27;/auth/login&#x27;, async (req, res) =&gt; {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: &#x27;กรุณากรอกชื่อผู้ใช้และรหัสผ่าน&#x27; });
+  }
+  try {
+    const [rows] = await pool.query(
+      &#x27;SELECT * FROM users WHERE username = ?&#x27;,
+      [username]
+    );
+    const user = rows[0];
+    const passwordOk = user &amp;&amp; await bcrypt.compare(password, user.password_hash);
+    if (!passwordOk) {
+      return res.status(401).json({ message: &#x27;ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง&#x27; });
+    }
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: &#x27;8h&#x27; }
+    );
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        role: user.role,
+        must_change_password: Boolean(user.must_change_password)
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: &#x27;เกิดข้อผิดพลาดที่ฐานข้อมูล&#x27; });
+  }
+});</pre><button class="copy">คัดลอก</button></div><p>สังเกตว่าชื่อผู้ใช้ไม่มีกับรหัสผ่านผิด ได้ข้อความเดียวกัน เพื่อไม่บอกคนร้ายว่าชื่อผู้ใช้ไหนมีอยู่จริง</p><p class="check"><strong>ผ่านเมื่อ</strong> Login ด้วย <code>hr1</code> ถูกต้องได้ <code>token</code> และข้อมูลผู้ใช้, รหัสผิดได้ 401, ชื่อผู้ใช้ที่ไม่มีได้ 401 ข้อความเดียวกัน</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>ส่องข้างใน token</h3>
+<p>คัดลอก <code>token</code> ที่ได้ ดูว่ามีสามส่วนคั่นด้วยจุด ส่วนกลางคือข้อมูล ลองแกะดูใน terminal</p><div class="code-wrap"><pre class="code">node -e &quot;console.log(Buffer.from(process.argv[1].split(&#x27;.&#x27;)[1], &#x27;base64url&#x27;).toString())&quot; TOKEN_ที่ได้</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> เห็น <code>id</code>, <code>username</code>, <code>role</code> และเวลาหมดอายุ อ่านได้โดยไม่ต้องรู้รหัสลับ จึงอธิบายได้ว่าทำไมห้ามใส่รหัสผ่านใน token จากนั้น commit และ push</p>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 3 (40 นาที)</p><h2>หน้าเข้าสู่ระบบด้วย Vue</h2><p>ทำใน <code>frontend/src/App.vue</code> หน้าเดิม ถ้ายังไม่ได้เข้าสู่ระบบ ให้เห็นแค่ฟอร์ม Login ถ้าเข้าแล้ว ค่อยเห็นของเดิมทั้งหมด</p><div class="step"><div class="n">1</div><div>
+<h3>ตัวแปรและฟังก์ชันเข้า ออกระบบ</h3>
+<p>เพิ่มใน <code>&lt;script setup&gt;</code></p><div class="code-wrap"><pre class="code">const user = ref(JSON.parse(localStorage.getItem(&#x27;user&#x27;) || &#x27;null&#x27;))
+const loginForm = ref({ username: &#x27;&#x27;, password: &#x27;&#x27; })
+const loginError = ref(&#x27;&#x27;)
+
+async function login() {
+  loginError.value = &#x27;&#x27;
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: &#x27;POST&#x27;,
+      headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
+      body: JSON.stringify(loginForm.value)
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message)
+    localStorage.setItem(&#x27;token&#x27;, data.token)
+    localStorage.setItem(&#x27;user&#x27;, JSON.stringify(data.user))
+    user.value = data.user
+    loginForm.value = { username: &#x27;&#x27;, password: &#x27;&#x27; }
+    await loadEvaluatees()
+  } catch (err) {
+    loginError.value = err.message
+  }
+}
+
+function logout() {
+  localStorage.removeItem(&#x27;token&#x27;)
+  localStorage.removeItem(&#x27;user&#x27;)
+  user.value = null
+}</pre><button class="copy">คัดลอก</button></div><p>แล้วแก้ <code>onMounted</code> เดิม ให้โหลดข้อมูลเฉพาะตอนเข้าสู่ระบบแล้ว</p><div class="code-wrap"><pre class="code">onMounted(() =&gt; {
+  if (user.value) loadEvaluatees()
+})</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>ครอบหน้าเดิมด้วยเงื่อนไข</h3>
+<p>ใน <code>&lt;template&gt;</code> ให้ <code>&lt;main&gt;</code> มีสองส่วน ส่วนแรกคือฟอร์ม Login ส่วนที่สองคือของเดิมทั้งหมด</p><div class="code-wrap"><pre class="code">&lt;main&gt;
+  &lt;section v-if=&quot;!user&quot;&gt;
+    &lt;h1&gt;เข้าสู่ระบบ&lt;/h1&gt;
+    &lt;form @submit.prevent=&quot;login&quot;&gt;
+      &lt;input v-model=&quot;loginForm.username&quot; placeholder=&quot;ชื่อผู้ใช้&quot; required&gt;
+      &lt;input v-model=&quot;loginForm.password&quot; type=&quot;password&quot; placeholder=&quot;รหัสผ่าน&quot; required&gt;
+      &lt;button type=&quot;submit&quot;&gt;เข้าสู่ระบบ&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;p v-if=&quot;loginError&quot; style=&quot;color: red&quot;&gt;{{ loginError }}&lt;/p&gt;
+  &lt;/section&gt;
+
+  &lt;section v-else&gt;
+    &lt;p&gt;
+      สวัสดี {{ user.full_name }} ({{ user.role }})
+      &lt;button @click=&quot;logout&quot;&gt;ออกจากระบบ&lt;/button&gt;
+    &lt;/p&gt;
+    &lt;!-- ของเดิมทั้งหมด ตั้งแต่ h1 รายชื่อผู้รับการประเมิน ลงมา --&gt;
+  &lt;/section&gt;
+&lt;/main&gt;</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> Login จากหน้าเว็บแล้วเห็นชื่อและบทบาท, รีเฟรชหน้ายังอยู่ในระบบ, กดออกแล้วกลับมาหน้า Login, ใส่รหัสผิดเห็นข้อความสีแดง จากนั้น commit และ push</p>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>ดูว่า token อยู่ตรงไหน</h3>
+<p>กด F12 ไปแท็บ Application เมนู Local Storage เลือก <code>http://localhost:5173</code> จะเห็น <code>token</code> และ <code>user</code> ลองกดออกจากระบบแล้วดูอีกครั้งว่าหายไปไหม</p>
+</div></div><h3>ใครเสร็จก่อน</h3><p>เพิ่มฟอร์มสมัครผู้ใช้ในหน้า Login ให้เลือกบทบาทจาก <code>&lt;select&gt;</code> ได้ และแสดงข้อความ 409 เมื่อชื่อซ้ำ</p><p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p></section>
+<section><h2>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h2><details><summary>Error ขึ้นว่า <code>Cannot find module './config'</code></summary><p>ไฟล์ <code>config.js</code> อยู่โฟลเดอร์เดียวกับไฟล์เซิร์ฟเวอร์หรือเปล่า และสะกดชื่อตรงกันไหม</p></details><details><summary>สมัครแล้วได้ 500 ทุกครั้ง</summary><p>ดูข้อความ error ใน terminal ของ Express ก่อน</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ถ้าขึ้น <code>Unknown column</code> แปลว่าชื่อคอลัมน์ใน SQL ไม่ตรงกับตาราง เทียบกับ <code>DESCRIBE users;</code> ถ้าขึ้น <code>Data truncated for column 'role'</code> แปลว่าส่งบทบาทที่ไม่อยู่ใน ENUM</p></details></details><details><summary>Login ถูกแล้วแต่ได้ 401</summary><p>ผู้ใช้คนนั้นสมัครผ่าน Route สมัครหรือเพิ่มเองด้วย SQL</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ถ้าเพิ่มด้วย SQL ตรง ๆ รหัสผ่านจะไม่ได้ถูก hash bcrypt จะเทียบไม่ผ่าน ให้ลบแถวนั้นแล้วสมัครใหม่ผ่าน API</p></details></details><details><summary>รีเฟรชหน้าแล้วหลุดจากระบบ</summary><p>ตอนเริ่ม ตัวแปร <code>user</code> อ่านค่าจาก <code>localStorage</code> หรือเปล่า</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ดูบรรทัด <code>const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))</code> และดูใน F12 แท็บ Application ว่ามี <code>user</code> ถูกเก็บไว้จริง</p></details></details><details><summary>หน้าเว็บขึ้น <code>Cannot read properties of null</code></summary><p>มีส่วนไหนใน template ใช้ <code>user.full_name</code> นอก <code>v-else</code> หรือเปล่า ตอนยังไม่ Login ค่า <code>user</code> เป็น null</p></details></section>
+<section id="quiz"><h2>ทายผลก่อนกดส่ง</h2><p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p><div id="quizBox"></div></section>
+<section><h2>Exit Ticket</h2><p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนลงมือเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
+<div class="sheet ticket" id="ticket"><label><input type="checkbox"><span>ผู้ตรวจเปิด MySQL ดูตาราง <code>users</code> แล้วไม่เห็นรหัสผ่านจริงของใครเลย</span></label><label><input type="checkbox"><span>ผู้ตรวจ Login ด้วยรหัสผิด และด้วยชื่อผู้ใช้ที่ไม่มี ได้ 401 ข้อความเดียวกันทั้งสองแบบ</span></label><label><input type="checkbox"><span>ผู้ตรวจสมัครชื่อผู้ใช้ซ้ำ ได้ 409 และสมัครรหัสผ่านสั้นกว่า 8 ตัวได้ 400</span></label><label><input type="checkbox"><span>ผู้ตรวจ Login จากหน้าเว็บ เปิด F12 ชี้ token ใน Local Storage ได้ แล้วกดออกจากระบบ token หายไป</span></label><label><input type="checkbox"><span>เจ้าของอธิบายได้ว่าทำไมไม่บอกว่าผิดที่ชื่อผู้ใช้หรือผิดที่รหัสผ่าน และทำไมห้ามใส่รหัสผ่านใน token</span></label><label><input type="checkbox"><span>บน GitLab มี commit ของวันนี้</span></label><div class="ticket-state" id="ticketState" aria-live="polite"></div></div><p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน</p><p class="sub">ครั้งถัดไป: ตรวจ token และสิทธิ์ตามบทบาทก่อนให้เข้าถึงข้อมูล และแยกหน้าเว็บตามบทบาท</p></section>
+</main>
+<script>
+const PAGE = {"game": {"type": "reorder", "done": "เรียงถูกทั้งหมด โครงนี้คือตรวจข้อมูลก่อน แล้วค่อยคุยกับฐานข้อมูล วันนี้ใช้แบบเดียวกัน", "lines": ["app.put('/evaluatees/:id', async (req, res) => {", "  const errors = validateEvaluatee(req.body);", "  if (errors.length > 0) return res.status(400).json({ message: errors.join(' / ') });", "  try {", "    const [result] = await pool.query('UPDATE evaluatees SET name = ?, department = ? WHERE id = ?', [req.body.name, req.body.department, req.params.id]);", "    if (result.affectedRows === 0) return res.status(404).json({ message: 'ไม่พบ' });", "    res.json({ message: 'แก้ไขเรียบร้อย' });", "  } catch (err) {", "    res.status(500).json({ message: 'เกิดข้อผิดพลาด' });", "  }", "});"], "hints": ["เริ่มจากเปิด Route PUT ก่อน", "ก่อนคุยกับฐานข้อมูล ต้องตรวจข้อมูลก่อน", "ถ้ามีข้อผิดพลาด ตอบ 400 แล้วจบทันที", "ส่วนที่อาจพังต้องอยู่ใน try", "ใน try สั่ง UPDATE ก่อน", "ดูว่าโดนกี่แถว ถ้าไม่โดนเลยคือ 404", "ถ้าโดน ตอบกลับว่าแก้แล้ว", "ปิด try แล้วเปิด catch", "ใน catch ตอบ 500", "ปิด catch", "ปิด Route"]}, "quiz": [{"q": "สมัคร eva1 กับ eva2 ด้วยรหัส password123 เหมือนกัน hash ในตารางจะเหมือนกันไหม", "opts": ["เหมือนกันทุกตัวอักษร", "ไม่เหมือน เพราะ bcrypt ใส่ค่าสุ่ม (salt) ให้ทุกครั้ง", "เหมือนกันครึ่งเดียว", "ขึ้นกับชื่อผู้ใช้"], "a": 1, "why": "เพราะแบบนี้จึงต้องใช้ bcrypt.compare เทียบ ไม่ใช่ hash ใหม่แล้วเอามาเทียบตรง ๆ"}, {"q": "ทำไมชื่อผู้ใช้ไม่มีกับรหัสผิด ตอบข้อความเดียวกัน", "opts": ["เขียนโค้ดง่ายกว่า", "ไม่ให้คนร้ายรู้ว่าชื่อผู้ใช้ไหนมีอยู่จริงในระบบ", "กรรมการกำหนด", "เพราะ 401 มีข้อความได้แบบเดียว"], "a": 1, "why": "ถ้าบอกว่าไม่มีชื่อผู้ใช้นี้ คนร้ายจะลองชื่อไปเรื่อย ๆ จนรู้ว่าใครมีบัญชี"}, {"q": "ถ้าเปลี่ยนค่า JWT_SECRET ใน config.js แล้วรัน Express ใหม่ token ที่ออกไปก่อนหน้าจะเป็นอย่างไร", "opts": ["ใช้ได้ตามปกติ", "ใช้ไม่ได้ เพราะลายเซ็นไม่ตรงกับรหัสลับใหม่", "ใช้ได้อีก 8 ชั่วโมง", "ใช้ได้เฉพาะ hr"], "a": 1, "why": "ลายเซ็นสร้างจากรหัสลับ เปลี่ยนรหัสลับ ทุก token เดิมก็ตรวจไม่ผ่าน ทุกคนต้อง Login ใหม่"}, {"q": "ข้อมูลข้างใน JWT ใครอ่านได้บ้าง", "opts": ["เฉพาะเซิร์ฟเวอร์ที่รู้รหัสลับ", "ใครที่ได้ token ไปก็อ่านได้ แต่แก้ไม่ได้โดยไม่ให้ลายเซ็นพัง", "ไม่มีใครอ่านได้", "เฉพาะ hr"], "a": 1, "why": "เหมือนที่แกะดูในส่วนที่ 2 JWT ไม่ได้ซ่อนข้อมูล แค่กันการปลอม"}]};
+
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fb = document.getElementById('gameFb');
+function say(ok, msg){ fb.className = 'feedback ' + (ok ? 'ok' : 'bad'); fb.textContent = msg; }
+function clearSay(){ fb.className = 'feedback'; fb.textContent = ''; }
+
+function mcq(boxId, items, wrongMsg){
+  const box = document.getElementById(boxId);
+  items.forEach((item, qi) => {
+    const wrap = document.createElement('div'); wrap.className = 'sheet q';
+    const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+    p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
+    if (item.code) { const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = item.code; wrap.appendChild(pre); }
+    const opts = document.createElement('div'); opts.className = 'opts';
+    const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+    item.opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => {
+        [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+        if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+        else { b.classList.add('picked-bad'); why.textContent = wrongMsg; }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+  });
+}
+
+const G = PAGE.game;
+if (G.type === 'mcq') {
+  mcq('gameBox', G.items, 'ยังไม่ใช่ ลองคิดอีกที');
+  document.getElementById('checkGame').style.display = 'none';
+  document.getElementById('resetGame').style.display = 'none';
+}
+if (G.type === 'reorder') {
+  const pool = document.getElementById('pool'), answer = document.getElementById('answer');
+  const chip = t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t;
+    b.addEventListener('click', () => { b.classList.remove('wrong','right'); (b.parentElement === pool ? answer : pool).appendChild(b); clearSay(); }); return b; };
+  const reset = () => { pool.innerHTML = ''; answer.innerHTML = ''; let s = shuffle(G.lines); if (s.every((t,i)=>t===G.lines[i])) s = s.reverse(); s.forEach(t => pool.appendChild(chip(t))); clearSay(); };
+  document.getElementById('resetGame').addEventListener('click', reset);
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const placed = [...answer.children]; placed.forEach(c => c.classList.remove('wrong','right'));
+    if (placed.length < G.lines.length) return say(false, 'ยังวางไม่ครบ เหลืออีก ' + (G.lines.length - placed.length) + ' บรรทัด');
+    const w = placed.findIndex((c, i) => c.textContent !== G.lines[i]);
+    if (w === -1) { placed.forEach(c => c.classList.add('right')); return say(true, G.done); }
+    placed.forEach((c, i) => { if (i < w) c.classList.add('right'); }); placed[w].classList.add('wrong');
+    say(false, 'ถูกถึงบรรทัดที่ ' + w + ' บรรทัดที่ ' + (w + 1) + ' ยังไม่ใช่ คำใบ้: ' + G.hints[w]);
+  });
+  reset();
+}
+if (G.type === 'sort') {
+  const box = document.getElementById('sortBox'); const picks = new Array(G.items.length).fill(-1);
+  shuffle(G.items.map((_, i) => i)).forEach(idx => {
+    const row = document.createElement('div'); row.className = 'sort-row'; row.dataset.idx = idx;
+    const t = document.createElement(G.mono ? 'code' : 'div'); t.className = 'txt'; t.textContent = G.items[idx].t;
+    const seg = document.createElement('div'); seg.className = 'seg';
+    G.options.forEach((o, oi) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => { picks[idx] = oi; [...seg.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); row.classList.remove('ok','bad'); clearSay(); });
+      seg.appendChild(b); });
+    row.appendChild(t); row.appendChild(seg); box.appendChild(row);
+  });
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const rows = [...box.children]; rows.forEach(r => r.classList.remove('ok','bad'));
+    const empty = picks.filter(p => p === -1).length;
+    if (empty) return say(false, 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ข้อ');
+    let wrong = 0; rows.forEach(r => { const i = +r.dataset.idx; if (picks[i] === G.items[i].a) r.classList.add('ok'); else { r.classList.add('bad'); wrong++; } });
+    if (wrong) say(false, 'ผิด ' + wrong + ' ข้อ ข้อที่มีแถบแดงลองคิดใหม่'); else say(true, G.done);
+  });
+  document.getElementById('resetGame').addEventListener('click', () => { picks.fill(-1); [...box.children].forEach(r => { r.classList.remove('ok','bad'); r.querySelectorAll('button').forEach(b => b.classList.remove('on')); }); clearSay(); });
+}
+
+mcq('quizBox', PAGE.quiz, 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล');
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+state.textContent = 'ยังเหลือ ' + boxes.length + ' ข้อ';
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>

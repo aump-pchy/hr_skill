@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 4: แก้ไข ลบ และตรวจข้อมูล</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+.blank{font:inherit;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--sheet);color:var(--text);border:2px solid var(--ink);border-radius:4px;padding:1px 4px;margin:0 2px}
+.sort-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.sort-row .txt{font-size:15px;word-break:break-word}
+.seg{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.seg button{font:inherit;font-size:14px;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:var(--sheet);color:var(--text);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sort-row.ok{box-shadow:inset 4px 0 0 var(--ok);padding-left:10px}
+.sort-row.bad{box-shadow:inset 4px 0 0 var(--bad);padding-left:10px}
+@media (max-width:640px){.sort-row{grid-template-columns:1fr}.seg{justify-content:flex-start}}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0}
+.flow span{background:var(--sheet);border:1px solid var(--ink);border-radius:4px;padding:4px 10px;font-size:15px}
+.flow em{font-style:normal;color:var(--muted)}
+.part{margin-top:64px;padding-top:8px;border-top:3px double var(--ink)}
+.part-label{font-size:15px;color:var(--muted);margin-bottom:2px}
+.part h2{margin-top:0}
+.role-card{background:var(--sheet);border:1px solid var(--line);border-top:5px solid var(--ink);border-radius:6px;padding:18px 20px;margin:20px 0}
+.role-card h3{margin-top:0}
+.role-card .who{color:var(--muted);font-size:15px;margin-bottom:8px}
+.tree{white-space:pre}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+<p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 4 จาก 16</p><h1>แก้ไข ลบ และตรวจข้อมูลก่อนบันทึก</h1><p class="goal">วันนี้ระบบเล็กจะทำได้ครบทั้งดู เพิ่ม แก้ไข และลบ ข้อมูลผิดต้องถูกปฏิเสธพร้อมบอกเหตุผล และเริ่มส่งงานขึ้น GitLab ทุกครั้งที่ทำผ่าน</p><div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+<div><div class="who">ส่งแก้ไขโดยลืมกรอกชื่อ</div><pre>PUT /evaluatees/1
+{
+  &quot;name&quot;: &quot;&quot;,
+  &quot;department&quot;: &quot;IT&quot;
+}</pre></div>
+<div><div class="who">Express ปฏิเสธพร้อมบอกเหตุผล</div><pre><span class="status">400 Bad Request</span>
+{
+  &quot;message&quot;: &quot;กรุณากรอกชื่อ-สกุล&quot;
+}</pre></div></div></header>
+<section><h2>ตารางวันนี้</h2><ol class="schedule"><li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมหาบั๊ก SQL</span></li><li><span class="min">50 นาที</span><span>ส่วนที่ 1: เริ่มใช้ Git และ GitLab</span></li><li><span class="min">20 นาที</span><span>ส่วนที่ 2: PUT, DELETE และการตรวจข้อมูล</span></li><li><span class="min">40 นาที</span><span>ส่วนที่ 3: ทำตาม แก้ไขและลบผู้รับการประเมิน</span></li><li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li><li><span class="min">60 นาที</span><span>ส่วนที่ 4: โจทย์ทำเอง ตัวชี้วัด</span></li><li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li><li><span class="min">25 นาที</span><span>ทายผล แล้วสลับคู่ตรวจ Exit Ticket</span></li></ol></section>
+<section id="game"><h2>เกม: หาบั๊ก SQL</h2><p>ห้ามเปิดไฟล์ครั้งที่ 2 ดู อ่านโค้ดแต่ละข้อแล้วเลือกคำตอบ เลือกผิดเลือกใหม่ได้</p><div><div id="gameBox"></div>
+<div class="btns"><button class="act" id="checkGame">ตรวจคำตอบ</button><button class="act ghost" id="resetGame">เริ่มใหม่</button></div>
+<div class="feedback" id="gameFb" aria-live="polite"></div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 1 (50 นาที)</p><h2>เริ่มใช้ Git และ GitLab</h2><p>วันแข่งต้องใช้ GitLab Server ส่งงานและรวมงานของทั้งทีม เริ่มจากวันนี้ ทุกครั้งที่ทำขั้นไหนผ่าน ให้ commit และ push ทันทีจนเป็นนิสัย</p><div class="flow"><span>แก้โค้ด</span><em>git add</em><span>เตรียมบันทึก</span><em>git commit</em><span>บันทึกในเครื่อง</span><em>git push</em><span>GitLab</span></div><div class="step"><div class="n">1</div><div>
+<h3>จัดโฟลเดอร์ให้อยู่ที่เดียว</h3>
+<p>โปรเจกต์ต้องมีโฟลเดอร์นอกสุดหนึ่งโฟลเดอร์ ข้างในมีฝั่ง Express กับฝั่ง Vue ถ้าตอนนี้แยกกันอยู่คนละที่ ให้ย้ายมารวมก่อน</p><div class="code-wrap"><pre class="code">evaluation-system/
+├── backend/     (โค้ด Express ที่ทำมาตั้งแต่ครั้งที่ 1)
+└── frontend/    (โปรเจกต์ Vue จากครั้งที่ 3)</pre></div><p>ย้ายแล้วลองรันทั้งสองฝั่งใหม่ให้ได้ก่อนไปขั้นต่อไป</p><p class="check"><strong>ผ่านเมื่อ</strong> Express และ Vue รันได้จากตำแหน่งใหม่</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>บอก Git ว่าเราเป็นใคร (ทำครั้งเดียวต่อเครื่อง)</h3>
+<div class="code-wrap"><pre class="code">git config --global user.name &quot;ชื่อของเรา&quot;
+git config --global user.email &quot;อีเมลของเรา&quot;</pre><button class="copy">คัดลอก</button></div>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>ไฟล์ที่ไม่ต้องส่งขึ้น</h3>
+<p>สร้างไฟล์ <code>.gitignore</code> ที่โฟลเดอร์นอกสุด <code>evaluation-system</code></p><div class="code-wrap"><pre class="code">node_modules/
+dist/</pre><button class="copy">คัดลอก</button></div><p><code>node_modules</code> สร้างใหม่ได้ด้วย <code>npm install</code> ไม่ต้องเก็บ ถ้าส่งขึ้นไปจะช้ามากและรก</p>
+</div></div><div class="step"><div class="n">4</div><div>
+<h3>เริ่ม repo ที่โฟลเดอร์นอกสุดเท่านั้น</h3>
+<p>เปิด terminal ที่ <code>evaluation-system</code> แล้วเช็กก่อนว่าไม่มี <code>.git</code> ซ้อนอยู่ข้างใน (ใช้ Git Bash)</p><div class="code-wrap"><pre class="code">find . -name .git -not -path &quot;*/node_modules/*&quot;</pre><button class="copy">คัดลอก</button></div><p>ถ้าไม่มีอะไรขึ้น ไปต่อได้ ถ้าเจอ <code>./frontend/.git</code> หรือ <code>./backend/.git</code> ให้ลบโฟลเดอร์ <code>.git</code> ที่เจอนั้นทิ้งก่อน แล้วค่อยเริ่ม</p><div class="code-wrap"><pre class="code">git init
+git status</pre><button class="copy">คัดลอก</button></div><p><code>git status</code> ควรเห็น <code>.gitignore</code>, <code>backend/</code> และ <code>frontend/</code> เป็นสีแดง แต่ไม่เห็น <code>node_modules</code></p>
+</div></div><div class="step"><div class="n">5</div><div>
+<h3>commit แรก แล้ว push ขึ้น GitLab</h3>
+<p>สร้าง project เปล่าบน GitLab ตามที่จารย์บอก ไม่ต้องติ๊กสร้าง README คัดลอก URL ของ project มา</p><div class="code-wrap"><pre class="code">git add .
+git commit -m &quot;ระบบเล็ก: API ผู้รับการประเมินและหน้าเว็บ&quot;
+git branch -M main
+git remote add origin URL_ของ_PROJECT
+git push -u origin main</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> บน GitLab กดเข้าโฟลเดอร์ <code>backend</code> และ <code>frontend</code> ได้ เห็นไฟล์ครบ และไม่มี <code>node_modules</code></p>
+</div></div><div class="step"><div class="n">6</div><div>
+<h3>ชุดคำสั่งที่จะใช้ทุกวันจากนี้</h3>
+<p>ทำขั้นไหนผ่าน ส่งทันที ข้อความ commit เขียนสั้น ๆ ว่าทำอะไรไป</p><div class="code-wrap"><pre class="code">git add .
+git commit -m &quot;เพิ่ม PUT และ DELETE ผู้รับการประเมิน&quot;
+git push</pre><button class="copy">คัดลอก</button></div>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 2 (20 นาที)</p><h2>PUT, DELETE และการตรวจข้อมูล</h2><h3>Method ครบ 4 ตัว</h3>
+<div class="tbl"><table><thead><tr><th>Method</th><th>ใช้ทำอะไร</th><th>SQL ที่คู่กัน</th><th>สำเร็จได้</th></tr></thead><tbody>
+<tr><td>GET</td><td>ดูข้อมูล</td><td><code>SELECT</code></td><td>200</td></tr>
+<tr><td>POST</td><td>เพิ่มข้อมูล</td><td><code>INSERT</code></td><td>201</td></tr>
+<tr><td>PUT</td><td>แก้ไขข้อมูลทั้งแถว</td><td><code>UPDATE</code></td><td>200</td></tr>
+<tr><td>DELETE</td><td>ลบข้อมูล</td><td><code>DELETE</code></td><td>200</td></tr></tbody></table></div>
+<h3>รู้ได้ยังไงว่าแก้หรือลบโดนจริง</h3>
+<p>ผลของ <code>UPDATE</code> และ <code>DELETE</code> มีค่า <code>affectedRows</code> บอกว่าโดนกี่แถว ถ้าเป็น 0 แปลว่าไม่มี id นั้น เราตอบ 404</p>
+<h3>ตรวจข้อมูลก่อนบันทึก</h3>
+<p>หน้าเว็บมี <code>required</code> ก็จริง แต่ใครก็ส่งข้อมูลตรงเข้า API ได้ด้วย Thunder Client ดังนั้น Express ต้องตรวจเองทุกครั้ง ถ้าข้อมูลผิด ตอบ <code>400</code> พร้อมข้อความที่บอกได้ว่าผิดตรงไหน กรรมการให้คะแนนเรื่อง Validation และ Exception Handling ตรงนี้</p>
+<div class="tbl"><table><thead><tr><th>Code</th><th>ใช้เมื่อ</th></tr></thead><tbody>
+<tr><td><code>400</code></td><td>ข้อมูลที่ส่งมาผิดหรือไม่ครบ</td></tr>
+<tr><td><code>404</code></td><td>ไม่มี id นั้น</td></tr>
+<tr><td><code>500</code></td><td>ฝั่งเซิร์ฟเวอร์หรือฐานข้อมูลพัง</td></tr></tbody></table></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 3 (40 นาที)</p><h2>ทำตาม: แก้ไขและลบผู้รับการประเมิน</h2><p>ทำใน <code>backend</code> ก่อน ทดสอบด้วย Thunder Client ให้ผ่าน แล้วค่อยไปทำหน้าเว็บ</p><div class="step"><div class="n">1</div><div>
+<h3>ฟังก์ชันตรวจข้อมูล</h3>
+<p>เพิ่มไว้ในไฟล์เซิร์ฟเวอร์ ก่อน Route ทั้งหมด</p><div class="code-wrap"><pre class="code">function validateEvaluatee(body) {
+  const errors = [];
+  if (!body.name || body.name.trim() === &#x27;&#x27;) {
+    errors.push(&#x27;กรุณากรอกชื่อ-สกุล&#x27;);
+  } else if (body.name.length &gt; 100) {
+    errors.push(&#x27;ชื่อ-สกุลยาวเกิน 100 ตัวอักษร&#x27;);
+  }
+  if (body.department &amp;&amp; body.department.length &gt; 100) {
+    errors.push(&#x27;ชื่อแผนกยาวเกิน 100 ตัวอักษร&#x27;);
+  }
+  return errors;
+}</pre><button class="copy">คัดลอก</button></div><p>ใน Route <code>POST /evaluatees</code> เดิม เพิ่มสามบรรทัดนี้เป็นบรรทัดแรกในฟังก์ชัน ก่อน <code>try</code></p><div class="code-wrap"><pre class="code">  const errors = validateEvaluatee(req.body);
+  if (errors.length &gt; 0) {
+    return res.status(400).json({ message: errors.join(&#x27; / &#x27;) });
+  }</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> POST ด้วย <code>{"name": ""}</code> ได้ 400 พร้อมข้อความ กรุณากรอกชื่อ-สกุล</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>PUT แก้ไข</h3>
+<div class="code-wrap"><pre class="code">app.put(&#x27;/evaluatees/:id&#x27;, async (req, res) =&gt; {
+  const errors = validateEvaluatee(req.body);
+  if (errors.length &gt; 0) {
+    return res.status(400).json({ message: errors.join(&#x27; / &#x27;) });
+  }
+  try {
+    const { name, department } = req.body;
+    const [result] = await pool.query(
+      &#x27;UPDATE evaluatees SET name = ?, department = ? WHERE id = ?&#x27;,
+      [name, department, req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: &#x27;ไม่พบผู้รับการประเมิน&#x27; });
+    }
+    res.json({ id: Number(req.params.id), name, department });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: &#x27;เกิดข้อผิดพลาดที่ฐานข้อมูล&#x27; });
+  }
+});</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> PUT <code>/evaluatees/1</code> แล้ว GET ได้ค่าใหม่, PUT id 999 ได้ 404, PUT ชื่อว่างได้ 400</p>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>DELETE ลบ</h3>
+<div class="code-wrap"><pre class="code">app.delete(&#x27;/evaluatees/:id&#x27;, async (req, res) =&gt; {
+  try {
+    const [result] = await pool.query(
+      &#x27;DELETE FROM evaluatees WHERE id = ?&#x27;,
+      [req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: &#x27;ไม่พบผู้รับการประเมิน&#x27; });
+    }
+    res.json({ message: &#x27;ลบเรียบร้อย&#x27; });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: &#x27;เกิดข้อผิดพลาดที่ฐานข้อมูล&#x27; });
+  }
+});</pre><button class="copy">คัดลอก</button></div><p class="check"><strong>ผ่านเมื่อ</strong> DELETE แล้ว GET id นั้นได้ 404 และใน MySQL ก็ไม่เห็นแถวนั้นแล้ว จากนั้น commit และ push</p>
+</div></div><div class="step"><div class="n">4</div><div>
+<h3>หน้าเว็บ: ปุ่มลบ</h3>
+<p>ใน <code>frontend/src/App.vue</code> ส่วน <code>&lt;script setup&gt;</code> เพิ่ม</p><div class="code-wrap"><pre class="code">async function removeEvaluatee(id) {
+  if (!confirm(&#x27;ยืนยันการลบ?&#x27;)) return
+  try {
+    const res = await fetch(`${API}/evaluatees/${id}`, { method: &#x27;DELETE&#x27; })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message)
+    await loadEvaluatees()
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}</pre><button class="copy">คัดลอก</button></div><p>ในตาราง เพิ่มหัวคอลัมน์ <code>&lt;th&gt;จัดการ&lt;/th&gt;</code> และในแถว <code>v-for</code> เพิ่มช่องนี้ต่อท้าย</p><div class="code-wrap"><pre class="code">&lt;td&gt;
+  &lt;button @click=&quot;startEdit(e)&quot;&gt;แก้ไข&lt;/button&gt;
+  &lt;button @click=&quot;removeEvaluatee(e.id)&quot;&gt;ลบ&lt;/button&gt;
+&lt;/td&gt;</pre><button class="copy">คัดลอก</button></div><p>ปุ่มแก้ไขจะใช้ได้หลังทำขั้นที่ 5</p>
+</div></div><div class="step"><div class="n">5</div><div>
+<h3>หน้าเว็บ: ใช้ฟอร์มเดิมแก้ไขได้</h3>
+<p>แทนที่ฟังก์ชัน <code>addEvaluatee</code> เดิมด้วยชุดนี้ ฟอร์มเดียวทำได้ทั้งเพิ่มและแก้ไข</p><div class="code-wrap"><pre class="code">const editingId = ref(null)
+
+function startEdit(e) {
+  editingId.value = e.id
+  form.value = { name: e.name, department: e.department }
+}
+
+function cancelEdit() {
+  editingId.value = null
+  form.value = { name: &#x27;&#x27;, department: &#x27;&#x27; }
+}
+
+async function saveEvaluatee() {
+  errorMsg.value = &#x27;&#x27;
+  const url = editingId.value
+    ? `${API}/evaluatees/${editingId.value}`
+    : `${API}/evaluatees`
+  const method = editingId.value ? &#x27;PUT&#x27; : &#x27;POST&#x27;
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
+      body: JSON.stringify(form.value)
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message)
+    cancelEdit()
+    await loadEvaluatees()
+  } catch (err) {
+    errorMsg.value = err.message
+  }
+}</pre><button class="copy">คัดลอก</button></div><p>แก้ฟอร์มให้เรียก <code>saveEvaluatee</code> และเปลี่ยนปุ่มตามโหมด</p><div class="code-wrap"><pre class="code">&lt;form @submit.prevent=&quot;saveEvaluatee&quot;&gt;
+  &lt;input v-model=&quot;form.name&quot; placeholder=&quot;ชื่อ-สกุล&quot;&gt;
+  &lt;input v-model=&quot;form.department&quot; placeholder=&quot;แผนก&quot;&gt;
+  &lt;button type=&quot;submit&quot;&gt;{{ editingId ? &#x27;บันทึกการแก้ไข&#x27; : &#x27;เพิ่ม&#x27; }}&lt;/button&gt;
+  &lt;button v-if=&quot;editingId&quot; type=&quot;button&quot; @click=&quot;cancelEdit&quot;&gt;ยกเลิก&lt;/button&gt;
+&lt;/form&gt;</pre><button class="copy">คัดลอก</button></div><p>เราเอา <code>required</code> ออกจากช่องชื่อโดยตั้งใจ จะได้เห็นว่าข้อความ 400 จาก Express ขึ้นบนหน้าเว็บจริง</p><p class="check"><strong>ผ่านเมื่อ</strong> กดแก้ไขแล้วข้อมูลขึ้นในฟอร์ม กดบันทึกแล้วตารางเปลี่ยน, ล้างชื่อแล้วกดบันทึกเห็นข้อความ กรุณากรอกชื่อ-สกุล, กดลบแล้วมีถามยืนยัน จากนั้น commit และ push</p>
+</div></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 4 (60 นาที)</p><h2>โจทย์ทำเอง: ตัวชี้วัดครบ 4 Method</h2><p>ทำ <code>/indicators</code> ให้ครบทั้ง 4 Method ทั้งฝั่ง Express และหน้าเว็บ ปิดโค้ดตัวอย่างไว้ เปิดดูได้เมื่อติดเกิน 10 นาทีเท่านั้น</p>
+<div class="sheet">
+<p>Express: เขียน <code>validateIndicator</code> ตรวจว่า <code>title</code> ห้ามว่างและยาวไม่เกิน 200 ตัว และ <code>weight</code> ต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 100 ใช้กับทั้ง POST และ PUT แล้วเพิ่ม <code>PUT /indicators/:id</code> กับ <code>DELETE /indicators/:id</code></p>
+<p>หน้าเว็บ: ตารางตัวชี้วัดมีปุ่มแก้ไขและลบ ฟอร์มเดียวใช้ได้ทั้งเพิ่มและแก้ไข และแสดงข้อความ 400 ที่ Express ส่งกลับมา</p>
+<p>เสร็จแล้ว commit และ push</p>
+<p class="check"><strong>ท้าทายเพิ่ม</strong> ให้ Express ตอบ <code>errors</code> เป็น Array ด้วย แล้วหน้าเว็บแสดงข้อผิดพลาดใต้ช่องกรอกที่ผิดแต่ละช่อง</p>
+</div>
+<p>คำใบ้ของการตรวจจำนวนเต็ม: <code>Number.isInteger(body.weight)</code> ให้ผลเป็น <code>true</code> ก็ต่อเมื่อเป็นตัวเลขจำนวนเต็มจริง ถ้าหน้าเว็บส่งมาเป็นข้อความ <code>"10"</code> จะได้ <code>false</code> ซึ่งแก้ได้ด้วย <code>v-model.number</code> ที่ช่องกรอก</p><p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p></section>
+<section><h2>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h2><h3>Git และ GitLab</h3><details><summary><code>git</code> ไม่รู้จักคำสั่ง</summary><p>ยังไม่ได้ลง Git for Windows หรือยังไม่ได้เปิด terminal ใหม่หลังลง</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ถ้าลงแล้วยังไม่ได้ ให้เปิดโปรแกรม Git Bash จากเมนู Start แทน</p></details></details><details><summary><code>git push</code> ถูกปฏิเสธหรือถามรหัสผ่าน</summary><p>เรียกจารย์ เรื่องสิทธิ์เข้า GitLab แก้จากฝั่ง project</p></details><details><summary><code>git status</code> เห็น <code>node_modules</code></summary><p>ไฟล์ <code>.gitignore</code> อยู่ผิดที่หรือชื่อผิด</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ต้องอยู่ที่โฟลเดอร์นอกสุด ชื่อขึ้นต้นด้วยจุด และไม่มีนามสกุลไฟล์ต่อท้าย ระวัง Windows แอบต่อ .txt ให้</p></details></details><details><summary>บน GitLab โฟลเดอร์ย่อยกดเข้าไม่ได้</summary><p>มี <code>.git</code> ซ้อนอยู่ในโฟลเดอร์ย่อย</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ที่โฟลเดอร์นอกสุดรันชุดนี้ เปลี่ยน <code>frontend</code> เป็นชื่อโฟลเดอร์ที่มีปัญหา</p><div class="code-wrap"><pre class="code">rm -rf frontend/.git
+git rm --cached frontend
+git add frontend
+git commit -m &quot;เอาไฟล์ใน frontend ขึ้นจริง&quot;
+git push</pre><button class="copy">คัดลอก</button></div></details></details><h3>PUT และ DELETE</h3><details><summary>PUT แล้วได้ 404 ทุกครั้ง</summary><p>id ที่ส่งไปมีอยู่ในตารางจริงไหม ลอง <code>SELECT * FROM evaluatees;</code> ดู</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ลำดับค่าใน Array ต้องตรงกับลำดับ <code>?</code> ใน SQL ค่าสุดท้ายต้องเป็น <code>req.params.id</code></p></details></details><details><summary>หน้าเว็บกดลบแล้วขึ้น CORS error</summary><p>ปกติ <code>cors()</code> อนุญาต DELETE อยู่แล้ว ดูใน terminal ของ Express ว่ามี error อะไรก่อน</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ถ้า Express ไม่ได้รันอยู่ เบราว์เซอร์จะขึ้นเหมือน CORS error ได้ ให้รัน Express ก่อน</p></details></details><details><summary>หน้าเว็บขึ้น <code>Unexpected token</code> ตอน <code>res.json()</code></summary><p>Express ตอบกลับมาไม่ใช่ JSON ส่วนใหญ่เพราะพิมพ์ URL หรือ Method ผิด จนได้หน้า Cannot PUT กลับมา</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>เปิด F12 แท็บ Network คลิก request นั้น ดูแท็บ Response ว่าได้อะไรกลับมาจริง</p></details></details></section>
+<section id="quiz"><h2>ทายผลก่อนกดส่ง</h2><p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p><div id="quizBox"></div></section>
+<section><h2>Exit Ticket</h2><p>คู่ A ตรวจคู่ B แล้วสลับกัน ผู้ตรวจเป็นคนลงมือเองบนเครื่องของเจ้าของงาน ตรวจจากผลที่รันจริงเท่านั้น</p>
+<div class="sheet ticket" id="ticket"><label><input type="checkbox"><span>ผู้ตรวจแก้ไขตัวชี้วัดจากหน้าเว็บ แล้วรีเฟรชหน้ายังเป็นค่าใหม่</span></label><label><input type="checkbox"><span>ผู้ตรวจกดลบจากหน้าเว็บ มีถามยืนยัน และใน MySQL ไม่มีแถวนั้นแล้ว</span></label><label><input type="checkbox"><span>ผู้ตรวจส่ง PUT ด้วย Thunder Client โดยให้ <code>title</code> ว่าง แล้วได้ 400 พร้อมข้อความ</span></label><label><input type="checkbox"><span>ผู้ตรวจส่ง <code>weight</code> เป็น 0 หรือ 150 แล้วได้ 400</span></label><label><input type="checkbox"><span>ผู้ตรวจส่ง DELETE <code>/indicators/999</code> แล้วได้ 404</span></label><label><input type="checkbox"><span>บน GitLab มี commit ของวันนี้ เห็นทั้ง <code>backend</code> และ <code>frontend</code> และไม่มี <code>node_modules</code></span></label><label><input type="checkbox"><span>เจ้าของอธิบายได้ว่าทำไมต้องตรวจข้อมูลที่ Express ทั้งที่หน้าเว็บตรวจได้</span></label><div class="ticket-state" id="ticketState" aria-live="polite"></div></div><p>ข้อไหนไม่ผ่าน จดไว้ว่าต้องแก้อะไร แล้วแก้ให้ผ่านก่อนกลับบ้าน</p><p class="sub">ครั้งถัดไป: ตารางผู้ใช้ เข้ารหัสรหัสผ่าน และเข้าสู่ระบบด้วย JWT</p></section>
+</main>
+<script>
+const PAGE = {"game": {"type": "mcq", "items": [{"q": "ต้องการหาคนแผนก IT เรียงตามชื่อ คำสั่งไหนถูก", "opts": ["SELECT * FROM evaluatees ORDER BY name WHERE department = 'IT';", "SELECT * FROM evaluatees WHERE department = 'IT' ORDER BY name;", "SELECT evaluatees WHERE department = 'IT' ORDER BY name;", "SELECT * WHERE department = 'IT' FROM evaluatees;"], "a": 1, "why": "ลำดับคือ SELECT ... FROM ... WHERE ... ORDER BY เสมอ"}, {"q": "โค้ดนี้มีบั๊กอะไร", "code": "const rows = await pool.query('SELECT * FROM evaluatees');\nres.json(rows);", "opts": ["ไม่มีบั๊ก", "ต้องเขียน const [rows] เพราะผลที่ได้เป็น Array สองช่อง", "ต้องไม่มี await", "ต้องใช้ res.send แทน res.json"], "a": 1, "why": "ถ้าไม่มีวงเล็บเหลี่ยม จะได้ทั้งข้อมูลและรายละเอียดคอลัมน์ปนกันออกไป"}, {"q": "ต้องการเปลี่ยนแผนกของ id 2 เป็นบัญชี คำสั่งไหนปลอดภัยและถูก", "opts": ["UPDATE evaluatees SET department = 'บัญชี';", "UPDATE evaluatees department = 'บัญชี' WHERE id = 2;", "UPDATE evaluatees SET department = 'บัญชี' WHERE id = 2;", "UPDATE SET department = 'บัญชี' WHERE id = 2;"], "a": 2, "why": "ต้องมีทั้ง SET และ WHERE ถ้าไม่มี WHERE ทุกแถวโดนหมด"}, {"q": "โค้ดนี้เสี่ยงเรื่องอะไร", "code": "pool.query(\"SELECT * FROM evaluatees WHERE name = '\" + req.query.name + \"'\")", "opts": ["ช้าเกินไป", "ไม่เสี่ยงอะไร", "เสี่ยง SQL Injection เพราะเอาค่าที่ผู้ใช้ส่งมาต่อเป็น SQL เอง", "ภาษาไทยจะเพี้ยน"], "a": 2, "why": "ต้องใช้ ? แล้วส่งค่าเป็น Array ให้ mysql2 เติมให้เสมอ"}]}, "quiz": [{"q": "ส่ง PUT /evaluatees/999 ที่ไม่มีในตาราง ด้วยข้อมูลถูกต้อง จะได้อะไร", "opts": ["200 แต่ไม่มีอะไรเปลี่ยน", "404 เพราะ affectedRows เป็น 0", "400", "500"], "a": 1, "why": "UPDATE ไม่เจอแถวไหนเลย affectedRows จึงเป็น 0 แล้วเราตอบ 404"}, {"q": "หน้าเว็บมี required ที่ช่องชื่ออยู่แล้ว ทำไม Express ยังต้องตรวจซ้ำ", "opts": ["ไม่จำเป็น ตรวจที่เดียวพอ", "เพราะใครก็ส่งตรงเข้า API ได้โดยไม่ผ่านหน้าเว็บ เช่นใช้ Thunder Client", "เพราะ Vue ตรวจผิดบ่อย", "เพราะ MySQL ต้องการ"], "a": 1, "why": "หน้าเว็บตรวจเพื่อความสะดวกของผู้ใช้ ส่วน API ตรวจเพื่อความถูกต้องของข้อมูล"}, {"q": "ทำไมไม่ส่งโฟลเดอร์ node_modules ขึ้น GitLab", "opts": ["เพราะ GitLab ห้าม", "เพราะสร้างใหม่ได้ด้วย npm install และมีไฟล์เยอะมาก ส่งแล้วช้า", "เพราะมีรหัสผ่านอยู่ข้างใน", "ต้องส่งด้วย ไม่งั้นรันไม่ได้"], "a": 1, "why": "รายการที่ต้องลงอยู่ใน package.json แล้ว ใคร clone ไปก็ npm install ได้"}, {"q": "แก้โค้ดเสร็จแล้วสั่ง git commit แต่ยังไม่ได้ git push เพื่อนจะเห็นงานบน GitLab ไหม", "opts": ["เห็นทันที", "ไม่เห็น เพราะ commit บันทึกแค่ในเครื่องเรา", "เห็นครึ่งเดียว", "เห็นเฉพาะไฟล์ใหม่"], "a": 1, "why": "push คือขั้นที่ส่งขึ้น GitLab วันแข่งลืม push เท่ากับเพื่อนไม่มีงานของเราไปรวม"}]};
+
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fb = document.getElementById('gameFb');
+function say(ok, msg){ fb.className = 'feedback ' + (ok ? 'ok' : 'bad'); fb.textContent = msg; }
+function clearSay(){ fb.className = 'feedback'; fb.textContent = ''; }
+
+function mcq(boxId, items, wrongMsg){
+  const box = document.getElementById(boxId);
+  items.forEach((item, qi) => {
+    const wrap = document.createElement('div'); wrap.className = 'sheet q';
+    const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+    p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
+    if (item.code) { const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = item.code; wrap.appendChild(pre); }
+    const opts = document.createElement('div'); opts.className = 'opts';
+    const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+    item.opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => {
+        [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+        if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+        else { b.classList.add('picked-bad'); why.textContent = wrongMsg; }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+  });
+}
+
+const G = PAGE.game;
+if (G.type === 'mcq') {
+  mcq('gameBox', G.items, 'ยังไม่ใช่ ลองคิดอีกที');
+  document.getElementById('checkGame').style.display = 'none';
+  document.getElementById('resetGame').style.display = 'none';
+}
+if (G.type === 'reorder') {
+  const pool = document.getElementById('pool'), answer = document.getElementById('answer');
+  const chip = t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t;
+    b.addEventListener('click', () => { b.classList.remove('wrong','right'); (b.parentElement === pool ? answer : pool).appendChild(b); clearSay(); }); return b; };
+  const reset = () => { pool.innerHTML = ''; answer.innerHTML = ''; let s = shuffle(G.lines); if (s.every((t,i)=>t===G.lines[i])) s = s.reverse(); s.forEach(t => pool.appendChild(chip(t))); clearSay(); };
+  document.getElementById('resetGame').addEventListener('click', reset);
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const placed = [...answer.children]; placed.forEach(c => c.classList.remove('wrong','right'));
+    if (placed.length < G.lines.length) return say(false, 'ยังวางไม่ครบ เหลืออีก ' + (G.lines.length - placed.length) + ' บรรทัด');
+    const w = placed.findIndex((c, i) => c.textContent !== G.lines[i]);
+    if (w === -1) { placed.forEach(c => c.classList.add('right')); return say(true, G.done); }
+    placed.forEach((c, i) => { if (i < w) c.classList.add('right'); }); placed[w].classList.add('wrong');
+    say(false, 'ถูกถึงบรรทัดที่ ' + w + ' บรรทัดที่ ' + (w + 1) + ' ยังไม่ใช่ คำใบ้: ' + G.hints[w]);
+  });
+  reset();
+}
+if (G.type === 'sort') {
+  const box = document.getElementById('sortBox'); const picks = new Array(G.items.length).fill(-1);
+  shuffle(G.items.map((_, i) => i)).forEach(idx => {
+    const row = document.createElement('div'); row.className = 'sort-row'; row.dataset.idx = idx;
+    const t = document.createElement(G.mono ? 'code' : 'div'); t.className = 'txt'; t.textContent = G.items[idx].t;
+    const seg = document.createElement('div'); seg.className = 'seg';
+    G.options.forEach((o, oi) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => { picks[idx] = oi; [...seg.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); row.classList.remove('ok','bad'); clearSay(); });
+      seg.appendChild(b); });
+    row.appendChild(t); row.appendChild(seg); box.appendChild(row);
+  });
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const rows = [...box.children]; rows.forEach(r => r.classList.remove('ok','bad'));
+    const empty = picks.filter(p => p === -1).length;
+    if (empty) return say(false, 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ข้อ');
+    let wrong = 0; rows.forEach(r => { const i = +r.dataset.idx; if (picks[i] === G.items[i].a) r.classList.add('ok'); else { r.classList.add('bad'); wrong++; } });
+    if (wrong) say(false, 'ผิด ' + wrong + ' ข้อ ข้อที่มีแถบแดงลองคิดใหม่'); else say(true, G.done);
+  });
+  document.getElementById('resetGame').addEventListener('click', () => { picks.fill(-1); [...box.children].forEach(r => { r.classList.remove('ok','bad'); r.querySelectorAll('button').forEach(b => b.classList.remove('on')); }); clearSay(); });
+}
+
+mcq('quizBox', PAGE.quiz, 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล');
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+state.textContent = 'ยังเหลือ ' + boxes.length + ' ข้อ';
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>

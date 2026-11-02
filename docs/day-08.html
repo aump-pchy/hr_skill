@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครั้งที่ 8: งานชุดแรกของแต่ละคน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3E8; --grid:#DCE6D3; --sheet:#FBFCF8; --ink:#1F4E8C; --text:#2A2D29;
+  --muted:#5E665B; --mark:#F3D54E; --ok:#2E7D4F; --bad:#B23A2E; --line:#C9D6BF;
+  --code-bg:#FBFCF8; --code-text:#22303F;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+    --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+    --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1C2620; --grid:#24322A; --sheet:#223029; --ink:#8DB8EC; --text:#E3EADF;
+  --muted:#A3AF9F; --mark:#D9BC3F; --ok:#6CC28F; --bad:#E57F72; --line:#34463B;
+  --code-bg:#17201B; --code-text:#D7E3EE; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background-color:var(--paper); color:var(--text);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  font-family:"Bai Jamjuree","Sarabun","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.7;
+}
+main{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+h1,h2,h3{line-height:1.3; margin:0}
+h1{font-size:clamp(30px,6vw,44px); font-weight:700; color:var(--ink); letter-spacing:-.01em}
+h2{font-size:26px; font-weight:700; margin-top:56px; margin-bottom:12px; color:var(--ink)}
+h3{font-size:19px; font-weight:600; margin:24px 0 8px}
+p{margin:0 0 12px; max-width:68ch}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+p code, li code, td code{background:var(--sheet); border:1px solid var(--line); padding:1px 6px; border-radius:4px; font-size:.88em}
+.sub{color:var(--muted); font-size:16px; margin-top:6px}
+:focus-visible{outline:3px solid var(--mark); outline-offset:2px}
+
+/* hero: request / response */
+.goal{margin-top:20px; font-size:19px}
+.exchange{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:24px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--sheet)}
+.exchange > div{padding:16px 18px}
+.exchange > div + div{border-left:2px dashed var(--ink)}
+.exchange .who{font-size:14px; color:var(--muted); margin-bottom:6px}
+.exchange pre{margin:0; font-size:14px; white-space:pre-wrap; color:var(--code-text)}
+.status{display:inline-block; background:var(--mark); color:#2A2D29; font-weight:600; padding:0 8px; border-radius:3px}
+@media (max-width:560px){ .exchange{grid-template-columns:1fr} .exchange > div + div{border-left:0; border-top:2px dashed var(--ink)} }
+
+/* schedule */
+.schedule{list-style:none; padding:0; margin:0; border-left:3px solid var(--ink)}
+.schedule li{display:grid; grid-template-columns:92px 1fr; gap:12px; padding:8px 0 8px 16px; position:relative}
+.schedule li::before{content:""; position:absolute; left:-8px; top:17px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:3px solid var(--ink)}
+.schedule .min{font-weight:600; color:var(--ink)}
+.schedule li.rest{color:var(--muted)}
+
+/* sheet blocks */
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0}
+.code-wrap{position:relative; margin:12px 0}
+pre.code{background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:4px; padding:14px 16px; overflow-x:auto; font-size:14px; line-height:1.6; margin:0}
+.copy{position:absolute; top:8px; right:8px; font:inherit; font-size:13px; padding:2px 10px; border-radius:4px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.check{border-top:1px dashed var(--line); margin-top:14px; padding-top:10px}
+.check strong{color:var(--ok)}
+
+/* steps */
+.step{display:grid; grid-template-columns:44px 1fr; gap:14px; margin-top:28px}
+.step .n{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-weight:700; font-size:18px}
+.step > div:last-child{min-width:0}
+
+table{border-collapse:collapse; width:100%; font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted)}
+
+/* game */
+.game-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .game-cols{grid-template-columns:1fr} }
+.zone{min-height:120px; border:2px dashed var(--line); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px}
+.zone-title{font-size:14px; color:var(--muted); margin-bottom:6px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; text-align:left; white-space:pre; background:var(--code-bg); color:var(--code-text); border:1px solid var(--line); border-radius:4px; padding:7px 10px; cursor:pointer; overflow-x:auto}
+.chip:hover{border-color:var(--ink)}
+.chip.wrong{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.chip.right{box-shadow:inset 4px 0 0 var(--ok)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button.act{font:inherit; font-weight:600; padding:8px 18px; border-radius:5px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer}
+button.act.ghost{background:transparent; color:var(--ink)}
+.feedback{margin-top:12px; min-height:1.7em}
+.feedback.ok{color:var(--ok); font-weight:600}
+.feedback.bad{color:var(--bad)}
+
+/* hints */
+details{border:1px solid var(--line); border-radius:5px; padding:8px 14px; margin:8px 0; background:var(--sheet)}
+details summary{cursor:pointer; font-weight:600}
+details details{margin-left:8px; background:transparent}
+details[open] > summary{margin-bottom:6px}
+
+/* quiz */
+.q{margin-top:20px}
+.q .opts{display:flex; flex-direction:column; gap:6px; margin-top:6px}
+.q .opts button{font:inherit; text-align:left; padding:8px 12px; border-radius:5px; border:1px solid var(--line); background:var(--sheet); color:var(--text); cursor:pointer}
+.q .opts button.picked-ok{border-color:var(--ok); box-shadow:inset 4px 0 0 var(--ok)}
+.q .opts button.picked-bad{border-color:var(--bad); box-shadow:inset 4px 0 0 var(--bad)}
+.q .why{font-size:15px; color:var(--muted); margin-top:6px}
+
+/* exit ticket */
+.ticket label{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); cursor:pointer}
+.ticket input{width:22px; height:22px; margin-top:4px; accent-color:var(--ok); flex:none}
+.ticket-state{margin-top:12px; font-weight:600}
+.rule{border-left:4px solid var(--mark); padding:6px 0 6px 14px; margin:16px 0}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+.blank{font:inherit;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--sheet);color:var(--text);border:2px solid var(--ink);border-radius:4px;padding:1px 4px;margin:0 2px}
+.sort-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.sort-row .txt{font-size:15px;word-break:break-word}
+.seg{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.seg button{font:inherit;font-size:14px;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:var(--sheet);color:var(--text);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sort-row.ok{box-shadow:inset 4px 0 0 var(--ok);padding-left:10px}
+.sort-row.bad{box-shadow:inset 4px 0 0 var(--bad);padding-left:10px}
+@media (max-width:640px){.sort-row{grid-template-columns:1fr}.seg{justify-content:flex-start}}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0}
+.flow span{background:var(--sheet);border:1px solid var(--ink);border-radius:4px;padding:4px 10px;font-size:15px}
+.flow em{font-style:normal;color:var(--muted)}
+.part{margin-top:64px;padding-top:8px;border-top:3px double var(--ink)}
+.part-label{font-size:15px;color:var(--muted);margin-bottom:2px}
+.part h2{margin-top:0}
+.role-card{background:var(--sheet);border:1px solid var(--line);border-top:5px solid var(--ink);border-radius:6px;padding:18px 20px;margin:20px 0}
+.role-card h3{margin-top:0}
+.role-card .who{color:var(--muted);font-size:15px;margin-bottom:8px}
+.tree{white-space:pre}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="sub"><a href="index.html" style="color:var(--ink);font-weight:600">กลับไปตารางซ้อม</a></p>
+<p class="sub">ซ้อมแข่งระบบประเมินบุคลากร ครั้งที่ 8 จาก 16</p><h1>งานชุดแรกของแต่ละคน แล้วรวมกัน</h1><p class="goal">วันแรกที่แต่ละคนทำงานของกลุ่มผู้ใช้ตัวเองบนโครงเดียวกัน ตอนจบต้องรวมงานแล้วข้อมูลไหลข้ามกลุ่มได้ งานบุคลากรเพิ่มตัวชี้วัด ผู้รับการประเมินกรอกผลงาน และกรรมการเห็นผลงานนั้น</p><div class="exchange" aria-label="ตัวอย่างผลลัพธ์ที่ต้องได้">
+<div><div class="who">งานบุคลากรเพิ่มตัวชี้วัด แล้วผู้รับการประเมินกรอกผลงาน</div><pre>hr1   POST /hr/indicators
+      การวางแผนการสอน
+
+eva1  POST /my/works
+      แผนการสอนวิชาเขียนโปรแกรม</pre></div>
+<div><div class="who">กรรมการเห็นทันที</div><pre><span class="status">200 OK</span>
+com1  GET /committee/assignments/1
+
+ตัวชี้วัด: การวางแผนการสอน
+  ผลงาน: แผนการสอนวิชาเขียนโปรแกรม</pre></div></div></header>
+<section><h2>ตารางวันนี้</h2><ol class="schedule"><li><span class="min">15 นาที</span><span>ของว่าง แล้วเล่นเกมเจ้าของ Endpoint</span></li><li><span class="min">10 นาที</span><span>คุยทีม: ใครทำอะไร ต้องรออะไรจากใคร</span></li><li><span class="min">30 นาที</span><span>ส่วนที่ 1: คนแกนส่งฐานข้อมูลและข้อมูลทดสอบ คนอื่นเริ่มหน้าเว็บ</span></li><li><span class="min">60 นาที</span><span>ส่วนที่ 2: แต่ละคนทำงานชุดแรกของกลุ่มตัวเอง</span></li><li class="rest"><span class="min">20 นาที</span><span>พักกิน</span></li><li><span class="min">50 นาที</span><span>ส่วนที่ 2 ต่อ</span></li><li class="rest"><span class="min">10 นาที</span><span>พักสั้น</span></li><li><span class="min">45 นาที</span><span>ส่วนที่ 3: รวมงานและทดสอบข้ามกลุ่ม</span></li></ol></section>
+<section id="game"><h2>เกม: Endpoint นี้ใครเรียกได้</h2><p>ห้ามเปิด <code>docs/api.md</code> ดู เลือกว่า Endpoint แต่ละตัวเปิดให้ใครเรียก ตามกติกาที่ทีมตกลงไว้เมื่อครั้งที่ 7</p><div class="sheet"><div id="sortBox"></div>
+<div class="btns"><button class="act" id="checkGame">ตรวจคำตอบ</button><button class="act ghost" id="resetGame">เริ่มใหม่</button></div>
+<div class="feedback" id="gameFb" aria-live="polite"></div></div></section>
+<section><h2>คุยทีม 10 นาที</h2><div class="sheet"><p>ยืนคุยกันหน้าจอ <code>docs/api.md</code> ทุกคนพูดสามเรื่อง คือวันนี้จะทำ Endpoint และหน้าไหน ต้องใช้อะไรจากเพื่อน และจะส่งอะไรให้เพื่อนเมื่อไหร่ ถ้าใครต้องเปลี่ยนชื่อ field หรือ path จากที่ตกลงไว้ ต้องบอกทีมและแก้ <code>docs/api.md</code> ก่อนแก้โค้ด</p><p>งานในหน้านี้ใช้ชื่อตารางตามแบบอ้างอิงของครั้งที่ 7 ถ้าทีมออกแบบต่างไป ให้เปลี่ยนชื่อในโค้ดให้ตรงกับของทีม</p></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 1 (30 นาที)</p><h2>ฐานข้อมูลจริงและข้อมูลทดสอบ</h2><div class="role-card"><div class="who">คนแกน ต้องเสร็จและ push ภายใน 30 นาทีแรก</div><h3>ฐานข้อมูลจริงและผู้ใช้ทดสอบ</h3><p>ทุกคนรอสองไฟล์นี้อยู่ ทำให้เสร็จก่อนงานอื่นทั้งหมด สร้าง <code>backend/seed.js</code> ใส่ผู้ใช้ทดสอบ 3 บทบาท รอบประเมิน หัวข้อ ตัวชี้วัด และการมอบหมายหนึ่งคู่</p><div class="code-wrap"><pre class="code">const bcrypt = require(&#x27;bcryptjs&#x27;);
+const pool = require(&#x27;./db&#x27;);
+
+async function seed() {
+  const hash = await bcrypt.hash(&#x27;password123&#x27;, 10);
+  await pool.query(
+    &#x27;INSERT INTO users (username, password_hash, full_name, department, role, must_change_password) VALUES ?&#x27;,
+    [[
+      [&#x27;hr1&#x27;, hash, &#x27;ฝ่ายบุคลากร ทดสอบ&#x27;, &#x27;งานบุคลากร&#x27;, &#x27;hr&#x27;, false],
+      [&#x27;eva1&#x27;, hash, &#x27;สมชาย ใจดี&#x27;, &#x27;IT&#x27;, &#x27;evaluatee&#x27;, true],
+      [&#x27;com1&#x27;, hash, &#x27;วิภา ตั้งใจ&#x27;, &#x27;IT&#x27;, &#x27;committee&#x27;, false]
+    ]]
+  );
+  const [round] = await pool.query(
+    &#x27;INSERT INTO evaluation_rounds (name, start_date, end_date) VALUES (?, ?, ?)&#x27;,
+    [&#x27;รอบที่ 1/2569&#x27;, &#x27;2026-11-01&#x27;, &#x27;2026-11-30&#x27;]
+  );
+  const [topic] = await pool.query(
+    &#x27;INSERT INTO topics (round_id, title) VALUES (?, ?)&#x27;,
+    [round.insertId, &#x27;ด้านการจัดการเรียนการสอน&#x27;]
+  );
+  await pool.query(
+    &#x27;INSERT INTO indicators (topic_id, title, weight, score_type) VALUES ?&#x27;,
+    [[
+      [topic.insertId, &#x27;การวางแผนการสอน&#x27;, 10, &#x27;scale_1_4&#x27;],
+      [topic.insertId, &#x27;มีแผนการสอนครบทุกรายวิชา&#x27;, 5, &#x27;yes_no&#x27;]
+    ]]
+  );
+  const [users] = await pool.query(
+    &quot;SELECT id, username FROM users WHERE username IN (&#x27;eva1&#x27;, &#x27;com1&#x27;)&quot;
+  );
+  const idOf = name =&gt; users.find(u =&gt; u.username === name).id;
+  await pool.query(
+    &#x27;INSERT INTO assignments (round_id, evaluatee_id, committee_id, committee_role) VALUES (?, ?, ?, ?)&#x27;,
+    [round.insertId, idOf(&#x27;eva1&#x27;), idOf(&#x27;com1&#x27;), &#x27;chair&#x27;]
+  );
+  console.log(&#x27;ใส่ข้อมูลทดสอบเรียบร้อย&#x27;);
+  process.exit(0);
+}
+
+seed().catch(err =&gt; {
+  console.error(err);
+  process.exit(1);
+});</pre><button class="copy">คัดลอก</button></div><p>รันแบบนี้ ทุกครั้งที่อยากเริ่มใหม่หมด ใช้สองคำสั่งนี้คู่กัน</p><div class="code-wrap"><pre class="code">mysql&gt; SOURCE sql/schema.sql;
+&gt; node seed.js</pre></div><p class="check"><strong>ผ่านเมื่อ</strong> <code>node seed.js</code> ขึ้นข้อความเรียบร้อย, Login ได้ทั้ง <code>hr1</code>, <code>eva1</code>, <code>com1</code> แล้ว push พร้อมบอกทีมให้ <code>git pull</code></p></div><div class="sheet"><p><strong>ระหว่างรอคนแกน</strong> คนอื่นเริ่มทำหน้าเว็บของกลุ่มตัวเองด้วยข้อมูลสมมติใน <code>ref([...])</code> ไปก่อน พอคนแกน push แล้วค่อยเปลี่ยนไปเรียก API จริง ตัวสำรองนั่งดูคนแกนเขียน seed แล้วอธิบายกลับให้ฟังว่าแต่ละบรรทัดทำอะไร</p></div></section>
+<section class="part"><p class="part-label">ส่วนที่ 2 (110 นาที รวมพักกิน)</p><h2>งานชุดแรกของแต่ละคน</h2><p>ทุกคนทำตามลำดับนี้: API ก่อน ทดสอบด้วย Thunder Client ให้ผ่าน commit และ push แล้วค่อยทำหน้าเว็บ ทุกชั่วโมงให้ <code>git pull</code> หนึ่งครั้ง จะได้เห็นงานของเพื่อนเร็ว</p><div class="role-card"><div class="who">คนแกน</div><h3>งานบุคลากร: รอบประเมิน หัวข้อ และตัวชี้วัด</h3>
+<p>Express ใน <code>routes/hr.js</code> ทุก Route ใช้ได้เฉพาะ <code>hr</code></p>
+<div class="tbl"><table><thead><tr><th>Method</th><th>Endpoint</th><th>หมายเหตุ</th></tr></thead><tbody>
+<tr><td>GET, POST</td><td><code>/hr/rounds</code></td><td><code>end_date</code> ต้องไม่ก่อน <code>start_date</code></td></tr>
+<tr><td>PUT, DELETE</td><td><code>/hr/rounds/:id</code></td><td></td></tr>
+<tr><td>GET</td><td><code>/hr/rounds/:id/topics</code></td><td>หัวข้อพร้อมตัวชี้วัดของรอบนั้น</td></tr>
+<tr><td>POST</td><td><code>/hr/topics</code></td><td>ต้องมี <code>round_id</code> ที่มีอยู่จริง</td></tr>
+<tr><td>PUT, DELETE</td><td><code>/hr/topics/:id</code></td><td></td></tr>
+<tr><td>POST</td><td><code>/hr/indicators</code></td><td><code>weight</code> 1–100, <code>score_type</code> ต้องเป็น <code>scale_1_4</code> หรือ <code>yes_no</code></td></tr>
+<tr><td>PUT, DELETE</td><td><code>/hr/indicators/:id</code></td><td></td></tr>
+</tbody></table></div>
+<p>หน้าเว็บใน <code>pages/hr/</code>: หน้ารอบประเมินที่เพิ่ม แก้ ลบได้ และหน้าจัดการหัวข้อกับตัวชี้วัดของรอบที่เลือก ถ้าไม่ทัน หน้าหัวข้อทำต่อครั้งที่ 9 ได้ แต่ API ต้องเสร็จวันนี้</p>
+<details><summary>คำใบ้: ดึงหัวข้อพร้อมตัวชี้วัดในครั้งเดียว</summary><p>ดึงหัวข้อของรอบ แล้วดึงตัวชี้วัดของหัวข้อเหล่านั้น จากนั้นจับใส่ใน JavaScript</p><div class="code-wrap"><pre class="code">const [topics] = await pool.query(&#x27;SELECT * FROM topics WHERE round_id = ?&#x27;, [req.params.id]);
+const [indicators] = await pool.query(
+  &#x27;SELECT i.* FROM indicators i JOIN topics t ON i.topic_id = t.id WHERE t.round_id = ?&#x27;,
+  [req.params.id]
+);
+res.json(topics.map(t =&gt; ({
+  ...t,
+  indicators: indicators.filter(i =&gt; i.topic_id === t.id)
+})));</pre><button class="copy">คัดลอก</button></div></details>
+<p class="check"><strong>ผ่านเมื่อ</strong> Login <code>hr1</code> สร้างรอบใหม่ เพิ่มหัวข้อและตัวชี้วัดทั้งสองแบบได้จากหน้าเว็บ และ token ของ <code>eva1</code> เรียก <code>/hr/rounds</code> ได้ 403</p></div><div class="role-card"><div class="who">คนผู้รับการประเมิน</div><h3>เปลี่ยนรหัสครั้งแรก ข้อมูลส่วนตัว และผลงาน</h3>
+<p>Express สองไฟล์ <code>routes/account.js</code> ใช้ <code>requireAuth</code> อย่างเดียว ส่วน <code>routes/evaluatee.js</code> ใช้ได้เฉพาะ <code>evaluatee</code></p>
+<div class="tbl"><table><thead><tr><th>Method</th><th>Endpoint</th><th>หมายเหตุ</th></tr></thead><tbody>
+<tr><td>PUT</td><td><code>/account/password</code></td><td>ส่ง <code>current_password</code>, <code>new_password</code> อย่างน้อย 8 ตัว ผ่านแล้วตั้ง <code>must_change_password</code> เป็น false</td></tr>
+<tr><td>GET, PUT</td><td><code>/account/profile</code></td><td>ดูและแก้ <code>full_name</code>, <code>department</code> ของตัวเอง</td></tr>
+<tr><td>GET</td><td><code>/my/indicators</code></td><td>ตัวชี้วัดของรอบปัจจุบัน พร้อมชื่อหัวข้อ</td></tr>
+<tr><td>GET</td><td><code>/my/works?indicator_id=</code></td><td>ผลงานของตัวเองในตัวชี้วัดนั้น</td></tr>
+<tr><td>POST</td><td><code>/my/works</code></td><td><code>indicator_id</code>, <code>title</code>, <code>detail</code></td></tr>
+<tr><td>PUT, DELETE</td><td><code>/my/works/:id</code></td><td>แก้หรือลบได้เฉพาะของตัวเอง</td></tr>
+</tbody></table></div>
+<p>ทุก SQL ของ <code>/my/works</code> ต้องมี <code>AND evaluatee_id = ?</code> ด้วย <code>req.user.id</code> เสมอ ถ้าเป็นผลงานของคนอื่น ให้ได้ผลเหมือนไม่มีแถวนั้น คือ 404</p>
+<p>หน้าเว็บใน <code>pages/evaluatee/</code>: หน้าเปลี่ยนรหัส หน้าข้อมูลส่วนตัว และหน้าผลงานที่เลือกตัวชี้วัดแล้วเพิ่ม แก้ ลบผลงานได้หลายรายการ</p>
+<p>ต้องขอคนแกนเพิ่มใน <code>router.js</code>: ถ้า <code>user.must_change_password</code> เป็นจริง ให้ทุกหน้าพาไป <code>/change-password</code> ก่อน และเมื่อเปลี่ยนรหัสสำเร็จ ให้แก้ค่านี้ใน <code>localStorage</code> เป็น false ด้วย</p>
+<details><summary>คำใบ้: เปลี่ยนรหัสผ่าน</summary><p>ดึงแถวของ <code>req.user.id</code> มาก่อน ใช้ <code>bcrypt.compare</code> ตรวจรหัสเดิม ไม่ตรงตอบ 400 ตรงแล้วค่อย <code>bcrypt.hash</code> รหัสใหม่และ <code>UPDATE</code></p></details>
+<p class="check"><strong>ผ่านเมื่อ</strong> Login <code>eva1</code> ครั้งแรกถูกบังคับเปลี่ยนรหัส, Login ใหม่ด้วยรหัสใหม่ได้, เพิ่มผลงานสองรายการในตัวชี้วัดเดียวกันได้ และใช้ id ผลงานของคนอื่นแก้แล้วได้ 404</p></div><div class="role-card"><div class="who">คนกรรมการ</div><h3>รายชื่อที่ได้รับมอบหมาย และหน้าดูข้อมูลของผู้รับการประเมิน</h3>
+<p>Express ใน <code>routes/committee.js</code> ใช้ได้เฉพาะ <code>committee</code></p>
+<div class="tbl"><table><thead><tr><th>Method</th><th>Endpoint</th><th>หมายเหตุ</th></tr></thead><tbody>
+<tr><td>GET</td><td><code>/committee/assignments</code></td><td>รายชื่อที่ตัวเองได้รับมอบหมาย พร้อมชื่อผู้รับการประเมิน ชื่อรอบ บทบาทประธานหรือกรรมการร่วม และสถานะ</td></tr>
+<tr><td>GET</td><td><code>/committee/assignments/:id</code></td><td>ข้อมูลผู้รับการประเมิน หัวข้อ ตัวชี้วัด ผลงาน และคะแนนประเมินตนเอง เฉพาะรายการที่ <code>committee_id</code> เป็นของตัวเอง</td></tr>
+</tbody></table></div>
+<p>หน้าเว็บใน <code>pages/committee/</code>: หน้ารายชื่อที่กดเข้าไปดูรายละเอียดได้ และหน้ารายละเอียดแบบดูอย่างเดียว เรียงตามหัวข้อ ใต้ตัวชี้วัดแต่ละตัวแสดงผลงานของผู้รับการประเมิน การให้คะแนนเริ่มครั้งที่ 9</p>
+<details><summary>คำใบ้: SQL รายชื่อที่ได้รับมอบหมาย</summary><div class="code-wrap"><pre class="code">SELECT a.id, a.committee_role, a.status,
+       u.full_name AS evaluatee_name, u.department,
+       r.name AS round_name
+FROM assignments a
+JOIN users u ON a.evaluatee_id = u.id
+JOIN evaluation_rounds r ON a.round_id = r.id
+WHERE a.committee_id = ?</pre><button class="copy">คัดลอก</button></div><p><code>JOIN</code> คือการต่อตารางเข้าด้วยกันตามคอลัมน์ที่ระบุ <code>AS</code> คือตั้งชื่อเล่นให้ตารางหรือคอลัมน์ ลองรันใน MySQL ก่อน โดยใส่ id ของ <code>com1</code> แทน <code>?</code></p></details>
+<details><summary>คำใบ้: กันไม่ให้ดูของคนที่ไม่ได้รับมอบหมาย</summary><p>ดึงแถวจาก <code>assignments</code> ด้วย <code>WHERE id = ? AND committee_id = ?</code> ถ้าไม่เจอตอบ 404 ทันที เจอแล้วค่อยใช้ <code>evaluatee_id</code> กับ <code>round_id</code> ของแถวนั้นไปดึงข้อมูลต่อ</p></details>
+<p class="check"><strong>ผ่านเมื่อ</strong> Login <code>com1</code> เห็น <code>eva1</code> ในรายชื่อพร้อมบทบาทประธาน, กดเข้าไปเห็นผลงานที่ <code>eva1</code> เพิ่งเพิ่ม และเรียก assignment id ที่ไม่ใช่ของตัวเองได้ 404</p></div><div class="role-card"><div class="who">ตัวสำรอง</div><h3>ฝึกงานของผู้รับการประเมิน ในสำเนาของตัวเอง</h3>
+<p>clone repo ทีมไว้อีกโฟลเดอร์ แล้วสร้าง branch ฝึกของตัวเอง ทำงานเปลี่ยนรหัสครั้งแรกและข้อมูลส่วนตัว ตามการ์ดของคนผู้รับการประเมิน งานนี้ไม่ merge เข้า <code>main</code></p><div class="code-wrap"><pre class="code">git checkout -b practice/sub</pre><button class="copy">คัดลอก</button></div><p>นั่งคู่กับคนกรรมการ ถ้าคนกรรมการติด ช่วยอ่านโค้ดหรือช่วยหาบั๊กได้ แต่ห้ามพิมพ์แทน ท้ายคาบเทียบโค้ดของตัวเองกับของคนผู้รับการประเมิน แล้วจดว่าต่างกันตรงไหน</p></div><p class="rule">ติดเกิน 10 นาที ถามคู่ซ้อมก่อน คู่ซ้อมช่วยชี้ได้ แต่ห้ามพิมพ์แทน ถ้ายังไม่ออกค่อยเรียกจารย์</p></section>
+<section class="part"><p class="part-label">ส่วนที่ 3 (45 นาที)</p><h2>รวมงานและทดสอบข้ามกลุ่ม</h2><div class="step"><div class="n">1</div><div>
+<h3>รวมงานตามลำดับ</h3>
+<p>เรียงตามนี้ทีละคน คนถัดไปเริ่มหลังคนก่อนหน้า push เสร็จ คนแกนก่อน แล้วคนผู้รับการประเมิน แล้วคนกรรมการ ทุกคน <code>git pull</code> แล้ว <code>git push</code> ตามกติกา ถ้าเจอ conflict แก้ด้วยกันที่เครื่องคนนั้น</p>
+</div></div><div class="step"><div class="n">2</div><div>
+<h3>รีเซ็ตข้อมูลแล้วรันใหม่ทุกเครื่อง</h3>
+<div class="code-wrap"><pre class="code">mysql&gt; SOURCE sql/schema.sql;
+&gt; node seed.js</pre></div><p>รีสตาร์ททั้ง Express และ Vue บนทุกเครื่อง</p>
+</div></div><div class="step"><div class="n">3</div><div>
+<h3>ทดสอบไหลข้ามกลุ่ม</h3>
+<p>ทำบนเครื่องเดียว คนอื่นยืนดูและจดปัญหา เรียงตามนี้</p><p><code>hr1</code> เพิ่มตัวชี้วัดใหม่ในรอบที่ 1 จากนั้น <code>eva1</code> Login ครั้งแรก ถูกบังคับเปลี่ยนรหัส แล้วเพิ่มผลงานในตัวชี้วัดที่ <code>hr1</code> เพิ่งเพิ่ม สุดท้าย <code>com1</code> Login เข้าไปดู <code>eva1</code> ต้องเห็นตัวชี้วัดใหม่และผลงานนั้น</p>
+</div></div><div class="step"><div class="n">4</div><div>
+<h3>อัปเดตเอกสาร</h3>
+<p>อะไรที่ทำต่างจาก <code>docs/api.md</code> ให้แก้เอกสารให้ตรงกับของจริงก่อนกลับ commit และ push ครั้งสุดท้ายของวัน</p>
+</div></div></section>
+<section><h2>ติดตรงไหน เปิดคำใบ้ทีละชั้น</h2><details><summary><code>node seed.js</code> ขึ้น <code>Duplicate entry</code></summary><p>มีข้อมูลทดสอบอยู่แล้ว รัน <code>SOURCE sql/schema.sql;</code> ก่อนเพื่อล้างทั้งหมด แล้วค่อย seed ใหม่</p></details><details><summary><code>node seed.js</code> ขึ้น <code>Unknown column</code></summary><p>ชื่อคอลัมน์ใน seed ไม่ตรงกับ <code>schema.sql</code> ของทีม เทียบกับ <code>DESCRIBE ชื่อตาราง;</code></p></details><details><summary>เพิ่มข้อมูลแล้วขึ้น <code>foreign key constraint fails</code></summary><p>id ที่อ้างถึง เช่น <code>round_id</code> หรือ <code>indicator_id</code> ไม่มีอยู่จริงในตารางแม่</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ควรดักไว้ก่อนแล้วตอบ 400 ว่าไม่พบรายการที่อ้างถึง แทนที่จะปล่อยให้เป็น 500</p></details></details><details><summary>หน้าเว็บของเพื่อนพังหลัง <code>git pull</code></summary><p>อาจมี package ใหม่ที่เพื่อนเพิ่ม ให้รัน <code>npm install</code> ในโฟลเดอร์นั้นอีกครั้ง</p><details><summary>คำใบ้ชั้นที่ 2</summary><p>ถ้ายังพัง ดูว่ามีการเปลี่ยน <code>schema.sql</code> ไหม ถ้ามี ให้รีเซ็ตฐานข้อมูลแล้ว seed ใหม่</p></details></details><details><summary>JSON ส่งไปถูกแต่ข้อมูลไม่ขึ้นหน้าเว็บ</summary><p>ชื่อ field ที่ API ส่งกับที่หน้าเว็บใช้ตรงกันไหม เช่น <code>full_name</code> กับ <code>fullName</code></p><details><summary>คำใบ้ชั้นที่ 2</summary><p>เปิด F12 แท็บ Network ดู Response จริงแล้วเทียบกับ <code>docs/api.md</code></p></details></details></section>
+<section id="quiz"><h2>ทายผลก่อนกดส่ง</h2><p>ตอบในใจก่อน แล้วค่อยลองบนเครื่องตัวเองว่าตรงไหม</p><div id="quizBox"></div></section>
+<section><h2>Exit Ticket</h2><p>ตรวจทั้งทีมบนเครื่องที่รวมงานแล้ว จารย์จับเวลาส่วนที่ 3 ไว้เทียบกับครั้งหน้า</p>
+<div class="sheet ticket" id="ticket"><label><input type="checkbox"><span>ทุกเครื่อง <code>git pull</code> ล่าสุดแล้ว รีเซ็ตฐานข้อมูลและ seed ใหม่ได้ รันได้ทั้งสองฝั่ง</span></label><label><input type="checkbox"><span><code>hr1</code> สร้างรอบ หัวข้อ และตัวชี้วัดทั้งสองแบบได้จากหน้าเว็บ</span></label><label><input type="checkbox"><span><code>eva1</code> ถูกบังคับเปลี่ยนรหัสครั้งแรก แล้วเพิ่มผลงานหลายรายการในตัวชี้วัดเดียวได้</span></label><label><input type="checkbox"><span><code>com1</code> เห็น <code>eva1</code> ในรายชื่อ และเห็นผลงานที่เพิ่งเพิ่ม</span></label><label><input type="checkbox"><span>ทดสอบข้ามสิทธิ์ผ่าน: token ของ <code>eva1</code> เรียก <code>/hr/rounds</code> ได้ 403 และแก้ผลงานของคนอื่นได้ 404</span></label><label><input type="checkbox"><span><code>docs/api.md</code> ตรงกับของจริง</span></label><div class="ticket-state" id="ticketState" aria-live="polite"></div></div><p>ข้อไหนไม่ผ่าน เจ้าของส่วนนั้นจดไว้ แล้วแก้เป็นอย่างแรกของครั้งที่ 9</p><p class="sub">ครั้งถัดไป: Upload หลักฐาน และกรรมการให้คะแนนแบบร่าง</p></section>
+</main>
+<script>
+const PAGE = {"game": {"type": "sort", "mono": true, "done": "ถูกทั้งหมด จำได้แบบนี้ จะเขียนด่านตรวจถูกตั้งแต่ครั้งแรก", "options": ["ไม่ต้อง Login", "ทุกบทบาท", "งานบุคลากร", "ผู้รับการประเมิน", "กรรมการ"], "items": [{"t": "POST /auth/login", "a": 0}, {"t": "PUT /account/password", "a": 1}, {"t": "POST /hr/rounds", "a": 2}, {"t": "DELETE /hr/indicators/:id", "a": 2}, {"t": "POST /my/works", "a": 3}, {"t": "GET /my/works?indicator_id=3", "a": 3}, {"t": "GET /committee/assignments", "a": 4}, {"t": "GET /committee/assignments/:id", "a": 4}]}, "quiz": [{"q": "eva1 ส่ง PUT /my/works/7 ที่เป็นผลงานของ eva2 ระบบของเราควรตอบอะไร", "opts": ["200 แก้ได้", "404 เพราะ SQL มีเงื่อนไข evaluatee_id ของคนที่ Login ทำให้ไม่เจอแถว", "403", "500"], "a": 1, "why": "ตอบเหมือนไม่มีแถวนั้น ไม่บอกด้วยซ้ำว่าผลงานเลข 7 มีอยู่จริง"}, {"q": "ทำไมต้องให้คนแกน push schema กับ seed ภายใน 30 นาทีแรก", "opts": ["เพราะคนแกนต้องไปทำอย่างอื่น", "เพราะทุกคนต้องใช้ฐานข้อมูลและผู้ใช้ทดสอบชุดเดียวกันถึงจะทดสอบ API ของตัวเองได้", "เพราะ GitLab ปิดหลัง 30 นาที", "ไม่จำเป็น"], "a": 1, "why": "งานที่คนอื่นรอ ต้องทำก่อนเสมอ วันแข่งก็ใช้ลำดับนี้"}, {"q": "เพื่อนเพิ่ม package ใหม่ แล้วเรา git pull มา รันแล้วขึ้น Cannot find module ควรทำอะไร", "opts": ["ลบโปรเจกต์แล้ว clone ใหม่", "npm install ในโฟลเดอร์นั้นอีกครั้ง", "ถามเพื่อนให้ส่ง node_modules มาให้", "รอจนหายเอง"], "a": 1, "why": "package.json มีรายการใหม่แล้ว แต่ node_modules ในเครื่องเรายังไม่มี"}, {"q": "กรรมการต้องเห็นผลงานของผู้รับการประเมิน ใครต้องตกลงรูปแบบข้อมูลกับใคร", "opts": ["ไม่ต้องตกลง ต่างคนต่างทำ", "คนกรรมการกับคนผู้รับการประเมิน ต้องใช้ชื่อตารางและคอลัมน์ของผลงานเดียวกัน", "คนแกนคนเดียว", "จารย์"], "a": 1, "why": "ข้อมูลเดียวกันใช้ข้ามกลุ่ม คือจุดที่รวมงานพังบ่อยที่สุด"}]};
+
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.previousElementSibling.innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'คัดลอกแล้ว'; }
+    catch (e) { btn.textContent = 'คัดลอกไม่ได้'; }
+    setTimeout(() => btn.textContent = 'คัดลอก', 1500);
+  });
+});
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fb = document.getElementById('gameFb');
+function say(ok, msg){ fb.className = 'feedback ' + (ok ? 'ok' : 'bad'); fb.textContent = msg; }
+function clearSay(){ fb.className = 'feedback'; fb.textContent = ''; }
+
+function mcq(boxId, items, wrongMsg){
+  const box = document.getElementById(boxId);
+  items.forEach((item, qi) => {
+    const wrap = document.createElement('div'); wrap.className = 'sheet q';
+    const p = document.createElement('p'); const s = document.createElement('strong'); s.textContent = (qi + 1) + '. ';
+    p.appendChild(s); p.appendChild(document.createTextNode(item.q)); wrap.appendChild(p);
+    if (item.code) { const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = item.code; wrap.appendChild(pre); }
+    const opts = document.createElement('div'); opts.className = 'opts';
+    const why = document.createElement('p'); why.className = 'why'; why.setAttribute('aria-live','polite');
+    item.opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => {
+        [...opts.children].forEach(x => x.classList.remove('picked-ok','picked-bad'));
+        if (oi === item.a) { b.classList.add('picked-ok'); why.textContent = 'ถูก ' + item.why; }
+        else { b.classList.add('picked-bad'); why.textContent = wrongMsg; }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(why); box.appendChild(wrap);
+  });
+}
+
+const G = PAGE.game;
+if (G.type === 'mcq') {
+  mcq('gameBox', G.items, 'ยังไม่ใช่ ลองคิดอีกที');
+  document.getElementById('checkGame').style.display = 'none';
+  document.getElementById('resetGame').style.display = 'none';
+}
+if (G.type === 'reorder') {
+  const pool = document.getElementById('pool'), answer = document.getElementById('answer');
+  const chip = t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t;
+    b.addEventListener('click', () => { b.classList.remove('wrong','right'); (b.parentElement === pool ? answer : pool).appendChild(b); clearSay(); }); return b; };
+  const reset = () => { pool.innerHTML = ''; answer.innerHTML = ''; let s = shuffle(G.lines); if (s.every((t,i)=>t===G.lines[i])) s = s.reverse(); s.forEach(t => pool.appendChild(chip(t))); clearSay(); };
+  document.getElementById('resetGame').addEventListener('click', reset);
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const placed = [...answer.children]; placed.forEach(c => c.classList.remove('wrong','right'));
+    if (placed.length < G.lines.length) return say(false, 'ยังวางไม่ครบ เหลืออีก ' + (G.lines.length - placed.length) + ' บรรทัด');
+    const w = placed.findIndex((c, i) => c.textContent !== G.lines[i]);
+    if (w === -1) { placed.forEach(c => c.classList.add('right')); return say(true, G.done); }
+    placed.forEach((c, i) => { if (i < w) c.classList.add('right'); }); placed[w].classList.add('wrong');
+    say(false, 'ถูกถึงบรรทัดที่ ' + w + ' บรรทัดที่ ' + (w + 1) + ' ยังไม่ใช่ คำใบ้: ' + G.hints[w]);
+  });
+  reset();
+}
+if (G.type === 'sort') {
+  const box = document.getElementById('sortBox'); const picks = new Array(G.items.length).fill(-1);
+  shuffle(G.items.map((_, i) => i)).forEach(idx => {
+    const row = document.createElement('div'); row.className = 'sort-row'; row.dataset.idx = idx;
+    const t = document.createElement(G.mono ? 'code' : 'div'); t.className = 'txt'; t.textContent = G.items[idx].t;
+    const seg = document.createElement('div'); seg.className = 'seg';
+    G.options.forEach((o, oi) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
+      b.addEventListener('click', () => { picks[idx] = oi; [...seg.children].forEach(x => x.classList.remove('on')); b.classList.add('on'); row.classList.remove('ok','bad'); clearSay(); });
+      seg.appendChild(b); });
+    row.appendChild(t); row.appendChild(seg); box.appendChild(row);
+  });
+  document.getElementById('checkGame').addEventListener('click', () => {
+    const rows = [...box.children]; rows.forEach(r => r.classList.remove('ok','bad'));
+    const empty = picks.filter(p => p === -1).length;
+    if (empty) return say(false, 'ยังเลือกไม่ครบ เหลืออีก ' + empty + ' ข้อ');
+    let wrong = 0; rows.forEach(r => { const i = +r.dataset.idx; if (picks[i] === G.items[i].a) r.classList.add('ok'); else { r.classList.add('bad'); wrong++; } });
+    if (wrong) say(false, 'ผิด ' + wrong + ' ข้อ ข้อที่มีแถบแดงลองคิดใหม่'); else say(true, G.done);
+  });
+  document.getElementById('resetGame').addEventListener('click', () => { picks.fill(-1); [...box.children].forEach(r => { r.classList.remove('ok','bad'); r.querySelectorAll('button').forEach(b => b.classList.remove('on')); }); clearSay(); });
+}
+
+mcq('quizBox', PAGE.quiz, 'ยังไม่ใช่ ลองคิดอีกที หรือลองทำจริงบนเครื่องแล้วดูผล');
+
+const boxes = document.querySelectorAll('#ticket input');
+const state = document.getElementById('ticketState');
+state.textContent = 'ยังเหลือ ' + boxes.length + ' ข้อ';
+boxes.forEach(b => b.addEventListener('change', () => {
+  const left = [...boxes].filter(x => !x.checked).length;
+  state.textContent = left === 0 ? 'ผ่านครบ ' + boxes.length + ' ข้อ' : 'ยังเหลือ ' + left + ' ข้อ';
+  state.style.color = left === 0 ? 'var(--ok)' : '';
+}));
+</script>
+</body>
+</html>
