@@ -111,10 +111,98 @@ details.hints{ margin-top:18px; }
 .status{ font-weight:600; }
 .status.ok{ color:var(--ok); } .status.warn{ color:var(--warn); }
 .er pre{ font-size:.82rem; }
+
+.demo-wrap{ display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:16px; align-items:start; margin-top:14px; }
+.demo-guide{ margin:0; position:sticky; top:calc(env(safe-area-inset-top,0px) + 110px); max-height:calc(100vh - 130px); overflow:auto; font-size:.93rem; }
+.demo-guide ol{ padding-left:20px; margin:0; } .demo-guide li{ margin:6px 0; }
+@media (max-width:900px){ .demo-wrap{ grid-template-columns:1fr; } .demo-guide{ position:static; max-height:none; } }
+.demo-frame{ background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden; min-height:560px; font-size:.94rem; }
+.dm-bar-top{ display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--surface2); border-bottom:1px solid var(--line); }
+.dm-dots{ display:flex; gap:5px; } .dm-dots i{ width:10px; height:10px; border-radius:50%; background:var(--line); display:block; }
+.dm-url{ flex:1; min-width:0; font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--muted); background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:3px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dm-nav{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--line); }
+.demo-frame .dm-nav button{ font:inherit; font-size:.9rem; border:1px solid transparent; background:none; color:var(--muted); padding:6px 10px; border-radius:6px; cursor:pointer; }
+.demo-frame .dm-nav button.on{ background:var(--surface2); color:var(--ink); font-weight:600; }
+.dm-who{ margin-left:auto; color:var(--muted); font-size:.85rem; }
+.dm-body{ padding:16px 18px 22px; }
+.dm-body h3{ margin:4px 0 6px; } .dm-body h4{ margin:16px 0 6px; }
+.demo-frame input,.demo-frame select,.demo-frame textarea{ font:inherit; font-size:.92rem; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); min-width:0; }
+.demo-frame button{ font:inherit; font-size:.9rem; padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--surface2); color:var(--ink); cursor:pointer; }
+.demo-frame button.dm-primary{ background:var(--accent); border-color:var(--accent); color:#fff; margin-top:10px; }
+.demo-frame button.dm-link{ border:none; background:none; color:var(--accent); padding:2px 4px; text-decoration:underline; }
+.demo-frame button.dm-danger{ color:#B42318; }
+.demo-frame .dm-nav button:not(.on){ background:none; }
+.demo-frame button.dm-reset{ padding:3px 10px; font-size:.8rem; }
+.dm-row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:8px 0; }
+.dm-col{ display:grid; gap:8px; max-width:420px; } .dm-col label,label.dm-col{ display:grid; gap:4px; margin-top:10px; }
+.dm-login{ max-width:380px; margin:20px auto; } .dm-login form{ display:grid; gap:10px; } .dm-login label{ display:grid; gap:4px; }
+.dm-hint{ font-size:.85rem; color:var(--muted); }
+.dm-uc{ display:inline-block; font-size:.8rem; background:var(--surface2); border:1px dashed var(--line); border-radius:6px; padding:2px 8px; color:var(--muted); margin:0 0 8px; }
+.dm-err{ color:#B42318; font-weight:600; } .dm-ok{ color:var(--ok); font-weight:600; }
+.dm-muted{ color:var(--muted); }
+.dm-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+.dm-card{ border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--surface2); } .dm-card small{ display:block; color:var(--muted); } .dm-card b{ font-size:1.5rem; }
+.dm-badge{ display:inline-block; font-size:.78rem; padding:1px 8px; border-radius:99px; border:1px solid var(--line); }
+.dm-pending{ color:var(--muted); } .dm-draft{ color:var(--warn); border-color:var(--warn); } .dm-confirmed{ color:var(--ok); border-color:var(--ok); }
+.dm-tw{ overflow-x:auto; } .dm-tw table{ font-size:.9rem; } .dm-act{ white-space:nowrap; }
+tr.dm-sel td{ background:var(--surface2); } tr.dm-total td{ font-weight:700; }
+.dm-bar{ height:8px; background:var(--surface2); border:1px solid var(--line); border-radius:99px; overflow:hidden; min-width:120px; } .dm-bar i{ display:block; height:100%; background:var(--ok); }
+.dm-prog{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:8px 0 12px; } .dm-prog .dm-bar{ flex:1; }
+.dm-ind{ border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:10px 0; }
+.dm-ind-h{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; } .dm-ind-h span{ color:var(--muted); font-size:.85rem; }
+.dm-ind p{ margin:4px 0; }
+.dm-steps{ display:flex; gap:10px; flex-wrap:wrap; font-size:.85rem; } .dm-steps .ok{ color:var(--ok); } .dm-steps .no{ color:var(--muted); }
+.dm-ev{ margin:6px 0; padding-left:18px; }
+.dm-sign{ font-style:italic; }
+.dm-doc{ max-width:720px; }
 [hidden]{ display:none!important; }
 @media (max-width:640px){ main{ padding:16px 14px 60px; } .day{ padding:16px; } h2{ font-size:1.4rem; } .days{ position:static; } }
 @media (prefers-reduced-motion:no-preference){ html{ scroll-behavior:smooth; } }
-@media print{ .top,.days,.toc{ display:none; } .page[hidden]{ display:none!important; } body{ background:#fff; } }
+@media print{ .top,.days,.toc{ display:none; } .page
+.demo-wrap{ display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:16px; align-items:start; margin-top:14px; }
+.demo-guide{ margin:0; position:sticky; top:calc(env(safe-area-inset-top,0px) + 110px); max-height:calc(100vh - 130px); overflow:auto; font-size:.93rem; }
+.demo-guide ol{ padding-left:20px; margin:0; } .demo-guide li{ margin:6px 0; }
+@media (max-width:900px){ .demo-wrap{ grid-template-columns:1fr; } .demo-guide{ position:static; max-height:none; } }
+.demo-frame{ background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden; min-height:560px; font-size:.94rem; }
+.dm-bar-top{ display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--surface2); border-bottom:1px solid var(--line); }
+.dm-dots{ display:flex; gap:5px; } .dm-dots i{ width:10px; height:10px; border-radius:50%; background:var(--line); display:block; }
+.dm-url{ flex:1; min-width:0; font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--muted); background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:3px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dm-nav{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--line); }
+.demo-frame .dm-nav button{ font:inherit; font-size:.9rem; border:1px solid transparent; background:none; color:var(--muted); padding:6px 10px; border-radius:6px; cursor:pointer; }
+.demo-frame .dm-nav button.on{ background:var(--surface2); color:var(--ink); font-weight:600; }
+.dm-who{ margin-left:auto; color:var(--muted); font-size:.85rem; }
+.dm-body{ padding:16px 18px 22px; }
+.dm-body h3{ margin:4px 0 6px; } .dm-body h4{ margin:16px 0 6px; }
+.demo-frame input,.demo-frame select,.demo-frame textarea{ font:inherit; font-size:.92rem; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); min-width:0; }
+.demo-frame button{ font:inherit; font-size:.9rem; padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--surface2); color:var(--ink); cursor:pointer; }
+.demo-frame button.dm-primary{ background:var(--accent); border-color:var(--accent); color:#fff; margin-top:10px; }
+.demo-frame button.dm-link{ border:none; background:none; color:var(--accent); padding:2px 4px; text-decoration:underline; }
+.demo-frame button.dm-danger{ color:#B42318; }
+.demo-frame .dm-nav button:not(.on){ background:none; }
+.demo-frame button.dm-reset{ padding:3px 10px; font-size:.8rem; }
+.dm-row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:8px 0; }
+.dm-col{ display:grid; gap:8px; max-width:420px; } .dm-col label,label.dm-col{ display:grid; gap:4px; margin-top:10px; }
+.dm-login{ max-width:380px; margin:20px auto; } .dm-login form{ display:grid; gap:10px; } .dm-login label{ display:grid; gap:4px; }
+.dm-hint{ font-size:.85rem; color:var(--muted); }
+.dm-uc{ display:inline-block; font-size:.8rem; background:var(--surface2); border:1px dashed var(--line); border-radius:6px; padding:2px 8px; color:var(--muted); margin:0 0 8px; }
+.dm-err{ color:#B42318; font-weight:600; } .dm-ok{ color:var(--ok); font-weight:600; }
+.dm-muted{ color:var(--muted); }
+.dm-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+.dm-card{ border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--surface2); } .dm-card small{ display:block; color:var(--muted); } .dm-card b{ font-size:1.5rem; }
+.dm-badge{ display:inline-block; font-size:.78rem; padding:1px 8px; border-radius:99px; border:1px solid var(--line); }
+.dm-pending{ color:var(--muted); } .dm-draft{ color:var(--warn); border-color:var(--warn); } .dm-confirmed{ color:var(--ok); border-color:var(--ok); }
+.dm-tw{ overflow-x:auto; } .dm-tw table{ font-size:.9rem; } .dm-act{ white-space:nowrap; }
+tr.dm-sel td{ background:var(--surface2); } tr.dm-total td{ font-weight:700; }
+.dm-bar{ height:8px; background:var(--surface2); border:1px solid var(--line); border-radius:99px; overflow:hidden; min-width:120px; } .dm-bar i{ display:block; height:100%; background:var(--ok); }
+.dm-prog{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:8px 0 12px; } .dm-prog .dm-bar{ flex:1; }
+.dm-ind{ border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:10px 0; }
+.dm-ind-h{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; } .dm-ind-h span{ color:var(--muted); font-size:.85rem; }
+.dm-ind p{ margin:4px 0; }
+.dm-steps{ display:flex; gap:10px; flex-wrap:wrap; font-size:.85rem; } .dm-steps .ok{ color:var(--ok); } .dm-steps .no{ color:var(--muted); }
+.dm-ev{ margin:6px 0; padding-left:18px; }
+.dm-sign{ font-style:italic; }
+.dm-doc{ max-width:720px; }
+[hidden]{ display:none!important; } body{ background:#fff; } }
 </style>
 </head>
 <body>
@@ -122,6 +210,7 @@ details.hints{ margin-top:18px; }
   <div class="brand"><h1>ซ้อมแข่ง รายการที่ 57</h1><span>ทักษะการพัฒนาระบบประเมินบุคลากร · วท.เลย</span></div>
   <nav class="tabs" aria-label="เมนู">
     <a href="#overview" data-p="overview">ภาพรวมระบบ</a>
+    <a href="#demo" data-p="demo">ดูระบบที่เสร็จ</a>
     <a href="#p1" data-p="p1">คนที่ 1 · บุคลากร</a>
     <a href="#p2" data-p="p2">คนที่ 2 · กรรมการ</a>
     <a href="#p3" data-p="p3">คนที่ 3 · ผู้รับการประเมิน</a>
@@ -331,6 +420,37 @@ VITE_API_URL=http://localhost:3000</code></pre>
 <section class="blk" id="ov-script"><h3>สคริปต์ทดสอบวันรวมระบบ (วันที่ 7)</h3><ol><li><b>admin</b> login → เพิ่มผู้รับการประเมิน <code>eva3</code> และกรรมการ <code>com3</code> → รีเซ็ตรหัส <code>com1</code> 1 ครั้ง</li><li><b>admin</b> เพิ่มหัวข้อที่เปิดวันนี้ → เพิ่มตัวชี้วัด 3 ตัว (มี/ไม่มี 1 ตัว, สเกล 1–4 อีก 2 ตัว น้ำหนักรวม 100)</li><li><b>admin</b> มอบหมาย <code>com3</code> เป็นประธาน และ <code>com1</code> เป็นกรรมการร่วม ให้ <code>eva3</code> → สถานะต้องเป็น “ยังไม่ประเมิน” ทั้งคู่</li><li><b>eva3</b> login → ถูกบังคับเปลี่ยนรหัส → แก้ข้อมูลส่วนตัว → ตัวชี้วัดแรกเพิ่ม 2 รายการ (PDF 1, URL 1) → กรอกคะแนนตนเองครบ → ความก้าวหน้า 100% → Export PDF ได้</li><li><b>com3</b> login → ถูกบังคับเปลี่ยนรหัส → เห็น <code>eva3</code> → เห็นหลักฐานและคะแนนตนเอง → ให้คะแนน 2 ตัวแล้วบันทึกร่าง</li><li><b>admin</b> ดูสถานะ <code>com3</code> ต้องเป็น “บันทึกร่าง” → <b>com3</b> ให้คะแนนครบ + ความเห็น + ลายเซ็น → ยืนยัน → ลองแก้ต้องไม่ได้</li><li><b>eva3</b> เห็นความเห็นของ <code>com3</code> → <b>admin</b> ดูร้อยละการบันทึก, รายงานรายบุคคลของ <code>eva3</code>, Dashboard มีค่าเฉลี่ย</li><li>ระหว่างทุกขั้น เปิด DevTools ค้างไว้ ต้องไม่มี error สีแดงใน Console และไม่มี request สีแดงที่ไม่ได้ตั้งใจใน Network</li><li>ทั้งหมดทำจาก <b>เครื่องอื่น</b> ผ่าน <code>http://&lt;IP เครื่องหลัก&gt;:5173</code> ลิงก์ไฟล์หลักฐานและรูปลายเซ็นต้องเปิดได้</li></ol></section>
 
 <section class="blk" id="ov-q"><h3>คำถามซ้อมตอบกรรมการ (นำเสนอ 20 นาที + ตอบ 3 ข้อใน 10 นาที)</h3><ol><li>JWT ทำงานยังไง ทำไมต้องมีการลงนาม (sign)</li><li>ทำไมใช้ pool แทนการเปิดการเชื่อมต่อทุกครั้ง</li><li>ป้องกันไม่ให้กรรมการดูงานของกรรมการคนอื่นยังไง</li><li>ทำไมคะแนนตนเองกรอกซ้ำแล้วไม่เกิดแถวซ้ำ</li><li>ร้อยละรวมคำนวณยังไง ลองคิดให้ดู 1 ตัวอย่าง</li><li>ถ้าย้ายไปเครื่องแม่ข่ายต้องแก้อะไรบ้าง</li><li>ตรวจข้อมูลก่อนบันทึกทั้งฝั่งหน้าเว็บและฝั่ง API ทำไมต้องทั้งสองที่</li><li>ทีมแบ่งงานกันยังไง ใครทำส่วนไหน</li></ol></section>
+</section>
+
+<section class="page" id="page-demo" hidden>
+<div class="hero">
+  <p class="eyebrow">ดูระบบที่เสร็จ</p>
+  <h2>นี่คือหน้าตาระบบที่ทีมจะสร้าง ลองกดเล่นได้จริง</h2>
+  <p class="lead">เป็นระบบจำลองในเบราว์เซอร์ ใช้ข้อมูลชุดเดียวกับ <code>seed.sql</code> ไม่ได้ต่อ API จริง ข้อมูลหายเมื่อกด “เริ่มใหม่” หรือรีเฟรช ทุกหน้ามีป้ายบอกรหัสยูสเคสและเจ้าของ จะได้รู้ว่าหน้าไหนเป็นงานของใคร</p>
+</div>
+<div class="demo-wrap">
+  <aside class="blk demo-guide">
+    <h3>ลองเดินตามเรื่องนี้</h3>
+    <ol>
+      <li>กด <b>admin</b> → เมนู “ผู้ใช้” เพิ่มผู้รับการประเมิน <code>eva3</code></li>
+      <li>เมนู “มอบหมายกรรมการ” มอบ <b>ประธาน ประเมินดี</b> ให้ eva3 แล้วออกจากระบบ</li>
+      <li>เข้า <code>eva3</code> รหัส <code>1234</code> → ถูกบังคับเปลี่ยนรหัส</li>
+      <li>เพิ่มรายละเอียดผลงาน แนบไฟล์หรือ URL และให้คะแนนตนเองครบทุกข้อ ดูแถบความก้าวหน้าขึ้นเป็น 100% แล้วกด Export PDF</li>
+      <li>ออก แล้วเข้า <b>com1</b> → ประเมิน eva3 → ให้คะแนน 2 ข้อ แล้วบันทึกร่าง</li>
+      <li>ลองกด “ยืนยันและส่งผล” ตอนยังไม่ครบ ระบบต้องไม่ยอม → ให้คะแนนครบ เขียนความเห็น อัปโหลดลายเซ็น (.png) แล้วยืนยัน</li>
+      <li>เข้า <b>admin</b> ดู “มอบหมายกรรมการ” สถานะเปลี่ยน, “รายงาน” มีคะแนน, Dashboard มีค่าเฉลี่ย · เข้า <code>eva3</code> ดูความคิดเห็นกรรมการ</li>
+    </ol>
+    <h4>หน้าจอทั้งหมดของระบบ</h4>
+    <div class="tw"><table><thead><tr><th>บทบาท</th><th>หน้าจอ</th><th>เจ้าของ</th></tr></thead><tbody>
+      <tr><td>ทุกคน</td><td>Login, เปลี่ยนรหัสผ่าน</td><td>ไฟล์ร่วม / คนที่ 3</td></tr>
+      <tr><td>งานบุคลากร</td><td>Dashboard, ผู้ใช้, หัวข้อ/ตัวชี้วัด, มอบหมายกรรมการ, รายงาน</td><td><a href="#p1">คนที่ 1</a></td></tr>
+      <tr><td>กรรมการ</td><td>รายชื่อที่ต้องประเมิน, หน้าประเมิน, หน้าผล</td><td><a href="#p2">คนที่ 2</a></td></tr>
+      <tr><td>ผู้รับการประเมิน</td><td>ตัวชี้วัดของฉัน, ความคิดเห็นกรรมการ, ข้อมูลส่วนตัว, หน้าพิมพ์ PDF</td><td><a href="#p3">คนที่ 3</a></td></tr>
+    </tbody></table></div>
+    <p class="muted">หน้าตาจริงของทีมไม่ต้องเหมือนนี้ แต่ต้องทำได้ครบทุกอย่างที่กดได้ในนี้</p>
+  </aside>
+  <div class="demo-frame" id="demo-app" aria-label="ระบบจำลอง"></div>
+</div>
 </section>
 <section class="page person" id="page-p1" data-person="p1" hidden>
 <div class="person-head"><div><p class="eyebrow">คนที่ 1</p><h2>งานบุคลากร</h2></div><div class="today-pill" data-today></div></div>
@@ -1867,7 +1987,7 @@ function printPage() {
 </main>
 <script>
 const DAYS = [{"d": 1, "date": "2026-11-13", "label": "ศ. 13 พ.ย.", "theme": "พิมพ์ไฟล์ร่วม + รวมโปรเจกต์ฐาน"}, {"d": 2, "date": "2026-11-16", "label": "จ. 16 พ.ย.", "theme": "งานชุดแรกของเลน"}, {"d": 3, "date": "2026-11-17", "label": "อ. 17 พ.ย.", "theme": "งานชุดที่ 2"}, {"d": 4, "date": "2026-11-18", "label": "พ. 18 พ.ย.", "theme": "งานชุดที่ 3 + รวมรอบเล็ก"}, {"d": 5, "date": "2026-11-19", "label": "พฤ. 19 พ.ย.", "theme": "งานชุดที่ 4"}, {"d": 6, "date": "2026-11-20", "label": "ศ. 20 พ.ย.", "theme": "เก็บงาน + ตรวจความเรียบร้อย"}, {"d": 7, "date": "2026-11-23", "label": "จ. 23 พ.ย.", "theme": "วันรวมระบบ + ขึ้นระบบ"}, {"d": 8, "date": "2026-11-24", "label": "อ. 24 พ.ย.", "theme": "ทวน: ไฟล์ร่วม + งานชุดแรก"}, {"d": 9, "date": "2026-11-25", "label": "พ. 25 พ.ย.", "theme": "ทวน: งานออกแบบ draw.io"}, {"d": 10, "date": "2026-11-26", "label": "พฤ. 26 พ.ย.", "theme": "ทวน: สร้างจากเครื่องเปล่า"}, {"d": 11, "date": "2026-11-27", "label": "ศ. 27 พ.ย.", "theme": "ซ่อมจุดที่ลืม + นำเสนอ"}, {"d": 12, "date": "2026-11-30", "label": "จ. 30 พ.ย.", "theme": "จำลองแข่ง ช่วงที่ 1"}, {"d": 13, "date": "2026-12-01", "label": "อ. 1 ธ.ค.", "theme": "จำลองแข่ง ช่วงที่ 2 + นำเสนอ"}, {"d": 14, "date": "2026-12-02", "label": "พ. 2 ธ.ค.", "theme": "ซ้อมเบา ๆ ก่อนแข่ง"}];
-const PAGES = ['overview','p1','p2','p3','sub'];
+const PAGES = ['overview','demo','p1','p2','p3','sub'];
 const store = {
   get(k){ try { return localStorage.getItem('ltc57:' + k); } catch (e) { return null; } },
   set(k, v){ try { localStorage.setItem('ltc57:' + k, v); } catch (e) {} },
@@ -1940,6 +2060,316 @@ document.querySelectorAll('[data-key]').forEach(el => {
   else { if (v !== null) el.value = v; el.addEventListener('input', () => store.set(el.dataset.key, el.value)); }
 });
 dbStatus();
+</script>
+<script>(function () {
+  const root = document.getElementById('demo-app');
+  if (!root) return;
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+  const ROLE = { admin: 'งานบุคลากร', evaluatee: 'ผู้รับการประเมิน', committee: 'กรรมการ' };
+  const STATUS = { pending: 'ยังไม่ประเมิน', draft: 'บันทึกร่าง', confirmed: 'ยืนยันแล้ว' };
+  const LEVEL = ['', 'ปฏิบัติได้ต่ำกว่าระดับที่คาดหวังมาก', 'ปฏิบัติได้ต่ำกว่าระดับที่คาดหวัง', 'ปฏิบัติได้ตามระดับที่คาดหวัง', 'ปฏิบัติได้สูงกว่าระดับที่คาดหวัง'];
+
+  function seed() {
+    return {
+      user: null, view: 'login', msg: '', err: '', sel: null, topicSel: 1, reportSel: 2, nextId: 100,
+      users: [
+        { id: 1, username: 'admin', pw: '1234', full_name: 'งานบุคลากร วท.เลย', email: 'hr@ltc.ac.th', phone: '', position: 'เจ้าหน้าที่งานบุคลากร', role: 'admin', must: 0 },
+        { id: 2, username: 'eva1', pw: '1234', full_name: 'สมชาย ใจดี', email: 'somchai@ltc.ac.th', phone: '', position: 'ครู', role: 'evaluatee', must: 0 },
+        { id: 3, username: 'eva2', pw: '1234', full_name: 'สมหญิง รักเรียน', email: 'somying@ltc.ac.th', phone: '', position: 'ครูผู้ช่วย', role: 'evaluatee', must: 1 },
+        { id: 4, username: 'com1', pw: '1234', full_name: 'ประธาน ประเมินดี', email: 'chair@ltc.ac.th', phone: '', position: 'รองผู้อำนวยการ', role: 'committee', must: 0 },
+        { id: 5, username: 'com2', pw: '1234', full_name: 'กรรมการ ร่วมใจ', email: 'member@ltc.ac.th', phone: '', position: 'หัวหน้าแผนก', role: 'committee', must: 1 },
+      ],
+      topics: [{ id: 1, title: 'ประเมินผลการปฏิบัติงาน ภาคเรียนที่ 2/2569', start: addDays(-7), end: addDays(30) }],
+      indicators: [
+        { id: 1, topic_id: 1, name: 'การจัดการเรียนการสอน', detail: 'มีแผนการสอนและสื่อครบทุกรายวิชา', weight: 30, type: 'scale_4', note: 'แผนการสอน (PDF)' },
+        { id: 2, topic_id: 1, name: 'การพัฒนาตนเอง', detail: 'เข้าอบรมอย่างน้อย 20 ชั่วโมงต่อปี', weight: 30, type: 'scale_4', note: 'เกียรติบัตร' },
+        { id: 3, topic_id: 1, name: 'มีรายงานการวิจัยในชั้นเรียน', detail: 'ส่งรายงานภายในภาคเรียน', weight: 20, type: 'yes_no', note: 'ไฟล์รายงาน' },
+        { id: 4, topic_id: 1, name: 'เข้าร่วมกิจกรรมวิทยาลัย', detail: 'เข้าร่วมกิจกรรมหลักของวิทยาลัย', weight: 20, type: 'yes_no', note: 'ภาพถ่ายหรือ URL' },
+      ],
+      assignments: [
+        { id: 1, topic_id: 1, evaluatee_id: 2, committee_id: 4, role: 'chair', status: 'pending', comment: '', signature: '' },
+        { id: 2, topic_id: 1, evaluatee_id: 2, committee_id: 5, role: 'member', status: 'draft', comment: 'ผลงานดี ควรเพิ่มหลักฐานการอบรม', signature: '' },
+        { id: 3, topic_id: 1, evaluatee_id: 3, committee_id: 4, role: 'chair', status: 'pending', comment: '', signature: '' },
+      ],
+      self: { '2-1': 4, '2-2': 3, '2-3': 1 },
+      evidences: [
+        { id: 1, evaluatee_id: 2, indicator_id: 1, detail: 'แผนการสอนวิชาการเขียนโปรแกรม', file: '', url: 'https://example.com/plan.pdf' },
+        { id: 2, evaluatee_id: 2, indicator_id: 1, detail: 'สื่อการสอนออนไลน์', file: '', url: 'https://example.com/course' },
+        { id: 3, evaluatee_id: 2, indicator_id: 2, detail: 'อบรม Node.js 12 ชั่วโมง', file: '', url: '' },
+      ],
+      cs: { '2-1': 4, '2-2': 2 },
+    };
+  }
+  let S = seed();
+  const uid = () => ++S.nextId;
+  const userById = (id) => S.users.find((u) => u.id === id);
+  const openTopic = () => { const t = iso(new Date()); return S.topics.filter((x) => x.start <= t && t <= x.end).slice(-1)[0] || null; };
+  const indsOf = (tid) => S.indicators.filter((i) => i.topic_id === tid);
+  const weighted = (type, score, w) => (score === undefined || score === null ? 0 : type === 'yes_no' ? score * w : (score / 4) * w);
+  const totalPct = (rows) => { const tw = rows.reduce((s, r) => s + Number(r.w), 0); if (!tw) return 0; return Math.round((rows.reduce((s, r) => s + weighted(r.type, r.score, r.w), 0) / tw) * 10000) / 100; };
+  const pctOfAssign = (a) => totalPct(indsOf(a.topic_id).map((i) => ({ type: i.type, w: i.weight, score: S.cs[a.id + '-' + i.id] })));
+  const progressOf = (eid, tid) => { const inds = indsOf(tid); if (!inds.length) return 0; return Math.round((inds.filter((i) => S.self[eid + '-' + i.id] !== undefined).length / inds.length) * 100); };
+  const scoreText = (type, s) => (s === undefined || s === null ? '-' : type === 'yes_no' ? (Number(s) === 1 ? 'มี' : 'ไม่มี') : String(s));
+  const badge = (st) => '<span class="dm-badge dm-' + st + '">' + STATUS[st] + '</span>';
+  const uc = (codes, who) => '<p class="dm-uc">ยูสเคสในหน้านี้: <b>' + codes + '</b> · ทำโดย ' + who + '</p>';
+  const scoreSelect = (name, type, val, dis) => {
+    const opts = type === 'yes_no' ? [['', '-'], ['1', 'มี'], ['0', 'ไม่มี']] : [['', '-'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']];
+    return '<select name="' + name + '"' + (dis ? ' disabled' : '') + '>' + opts.map(([v, t]) => '<option value="' + v + '"' + (val !== undefined && val !== null && String(val) === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
+  };
+  const flash = () => (S.err ? '<p class="dm-err">' + esc(S.err) + '</p>' : '') + (S.msg ? '<p class="dm-ok">' + esc(S.msg) + '</p>' : '');
+  function go(view, extra) { S.view = view; S.msg = ''; S.err = ''; Object.assign(S, extra || {}); render(); }
+
+  const NAV = {
+    admin: [['a-dash', 'Dashboard'], ['a-users', 'ผู้ใช้'], ['a-topics', 'หัวข้อ/ตัวชี้วัด'], ['a-assign', 'มอบหมายกรรมการ'], ['a-report', 'รายงาน']],
+    committee: [['c-list', 'รายชื่อที่ต้องประเมิน']],
+    evaluatee: [['e-ind', 'ตัวชี้วัดของฉัน'], ['e-comments', 'ความคิดเห็นกรรมการ'], ['e-profile', 'ข้อมูลส่วนตัว']],
+  };
+
+  // ---------- views ----------
+  const V = {};
+  V.login = () => '<div class="dm-login"><h3>ระบบประเมินบุคลากร</h3>' + flash() +
+    '<form data-form="login"><label>ชื่อผู้ใช้ <input name="u" autocomplete="off"></label><label>รหัสผ่าน <input name="p" type="password"></label><button>เข้าสู่ระบบ</button></form>' +
+    '<p class="dm-hint">ทางลัด (รหัส 1234): ' + S.users.map((u) => '<button type="button" class="dm-link" data-act="quick" data-id="' + u.id + '">' + esc(u.username) + '</button>').join(' ') + '</p>' +
+    uc('Login ร่วม', 'ก้อนไฟล์ร่วมของคนที่ 2 และ 3') + '</div>';
+  V.changepw = () => '<div class="dm-login"><h3>เปลี่ยนรหัสผ่าน</h3><p>เข้าใช้ครั้งแรก ต้องเปลี่ยนรหัสก่อนใช้งาน</p>' + flash() +
+    '<form data-form="changepw"><label>รหัสเดิม <input name="o" type="password"></label><label>รหัสใหม่ (อย่างน้อย 6 ตัว) <input name="n" type="password"></label><label>ยืนยันรหัสใหม่ <input name="c" type="password"></label><button>บันทึก</button></form>' + uc('E1', 'คนที่ 3') + '</div>';
+
+  V['a-dash'] = () => {
+    const ev = S.users.filter((u) => u.role === 'evaluatee').length, co = S.users.filter((u) => u.role === 'committee').length;
+    const conf = S.assignments.filter((a) => a.status === 'confirmed');
+    const avg = conf.length ? Math.round((conf.reduce((s, a) => s + pctOfAssign(a), 0) / conf.length) * 100) / 100 : 0;
+    return '<h3>Dashboard</h3>' + uc('A13', 'คนที่ 1') + '<div class="dm-cards">' +
+      [['ผู้รับการประเมิน', ev], ['กรรมการ', co], ['ยืนยันผลแล้ว', conf.length + ' / ' + S.assignments.length], ['ค่าเฉลี่ยคะแนน (ที่ยืนยันแล้ว)', avg + '%']]
+        .map(([k, v]) => '<div class="dm-card"><small>' + k + '</small><b>' + v + '</b></div>').join('') + '</div>';
+  };
+  V['a-users'] = () => {
+    const rows = (role) => S.users.filter((u) => u.role === role).map((u) => '<tr><td>' + esc(u.username) + '</td><td>' + esc(u.full_name) + '</td><td>' + esc(u.position) + '</td><td class="dm-act"><button class="dm-link" data-act="resetpw" data-id="' + u.id + '">รีเซ็ตรหัส</button> <button class="dm-link dm-danger" data-act="deluser" data-id="' + u.id + '">ลบ</button></td></tr>').join('');
+    const table = (role) => '<div class="dm-tw"><table><thead><tr><th>ชื่อผู้ใช้</th><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th></th></tr></thead><tbody>' + rows(role) + '</tbody></table></div>';
+    return '<h3>จัดการผู้ใช้</h3>' + uc('A1 A2 A3', 'คนที่ 1') + flash() +
+      '<form data-form="adduser" class="dm-row"><input name="username" placeholder="ชื่อผู้ใช้"><input name="full_name" placeholder="ชื่อ-สกุล"><input name="position" placeholder="ตำแหน่ง"><select name="role"><option value="evaluatee">ผู้รับการประเมิน</option><option value="committee">กรรมการ</option></select><button>เพิ่ม (รหัสเริ่มต้น 1234)</button></form>' +
+      '<h4>ผู้รับการประเมิน</h4>' + table('evaluatee') + '<h4>กรรมการ</h4>' + table('committee');
+  };
+  V['a-topics'] = () => {
+    const t = S.topics.find((x) => x.id === S.topicSel) || S.topics[0];
+    const today = iso(new Date());
+    const list = S.topics.map((x) => '<tr' + (t && x.id === t.id ? ' class="dm-sel"' : '') + '><td>' + esc(x.title) + '</td><td>' + x.start + ' ถึง ' + x.end + '</td><td>' + (x.start <= today && today <= x.end ? '<span class="dm-badge dm-confirmed">เปิดอยู่</span>' : '<span class="dm-badge dm-pending">ปิด</span>') + '</td><td><button class="dm-link" data-act="pickTopic" data-id="' + x.id + '">ตัวชี้วัด →</button></td></tr>').join('');
+    const inds = t ? indsOf(t.id).map((i) => '<tr><td>' + esc(i.name) + '<br><small>' + esc(i.detail) + '</small></td><td>' + i.weight + '</td><td>' + (i.type === 'yes_no' ? 'มี/ไม่มี' : 'สเกล 1–4') + '</td><td>' + esc(i.note) + '</td><td><button class="dm-link dm-danger" data-act="delind" data-id="' + i.id + '">ลบ</button></td></tr>').join('') : '';
+    return '<h3>หัวข้อการประเมิน</h3>' + uc('A4 A5 A6', 'คนที่ 1') + flash() +
+      '<form data-form="addtopic" class="dm-row"><input name="title" placeholder="ชื่อหัวข้อ"><label>เริ่ม <input type="date" name="start"></label><label>สิ้นสุด <input type="date" name="end"></label><button>เพิ่มหัวข้อ</button></form>' +
+      '<div class="dm-tw"><table><thead><tr><th>หัวข้อ</th><th>ช่วงเวลา</th><th>สถานะ</th><th></th></tr></thead><tbody>' + list + '</tbody></table></div>' +
+      (t ? '<h4>ตัวชี้วัดของ “' + esc(t.title) + '”</h4><form data-form="addind" class="dm-row"><input name="name" placeholder="ชื่อตัวชี้วัด"><input name="detail" placeholder="รายละเอียด"><input name="weight" type="number" min="1" placeholder="น้ำหนัก" style="width:90px"><input name="note" placeholder="หลักฐานที่ต้องแนบ"><select name="type"><option value="scale_4">สเกล 1–4</option><option value="yes_no">มี/ไม่มี</option></select><button>เพิ่ม</button></form>' +
+        '<p class="dm-hint">สเกล 1–4: ' + [1, 2, 3, 4].map((n) => n + ' = ' + LEVEL[n]).join(' · ') + '</p>' +
+        '<div class="dm-tw"><table><thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>รูปแบบ</th><th>หลักฐาน</th><th></th></tr></thead><tbody>' + inds + '</tbody></table></div>' : '');
+  };
+  V['a-assign'] = () => {
+    const ev = S.users.filter((u) => u.role === 'evaluatee'), co = S.users.filter((u) => u.role === 'committee');
+    const rows = S.assignments.map((a) => '<tr><td>' + esc(userById(a.evaluatee_id)?.full_name) + '</td><td>' + esc(userById(a.committee_id)?.full_name) + '</td><td>' + (a.role === 'chair' ? 'ประธาน' : 'กรรมการร่วม') + '</td><td>' + badge(a.status) + '</td><td><button class="dm-link dm-danger" data-act="delassign" data-id="' + a.id + '">ยกเลิก</button></td></tr>').join('');
+    return '<h3>มอบหมายกรรมการ</h3>' + uc('A7 A8 A9', 'คนที่ 1') + flash() +
+      '<form data-form="addassign" class="dm-row"><select name="e">' + ev.map((u) => '<option value="' + u.id + '">' + esc(u.full_name) + '</option>').join('') + '</select><select name="c">' + co.map((u) => '<option value="' + u.id + '">' + esc(u.full_name) + '</option>').join('') + '</select><select name="r"><option value="chair">ประธาน</option><option value="member">กรรมการร่วม</option></select><button>มอบหมาย</button></form>' +
+      '<div class="dm-tw"><table><thead><tr><th>ผู้รับการประเมิน</th><th>กรรมการ</th><th>บทบาท</th><th>สถานะ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  };
+  V['a-report'] = () => {
+    const t = S.topics[0];
+    const ev = S.users.filter((u) => u.role === 'evaluatee');
+    const prog = ev.map((u) => { const p = progressOf(u.id, t.id); return '<tr><td>' + esc(u.full_name) + '</td><td><div class="dm-bar"><i style="width:' + p + '%"></i></div></td><td>' + p + '%</td></tr>'; }).join('');
+    const sel = S.users.find((u) => u.id === S.reportSel) || ev[0];
+    let rep = '';
+    if (sel) {
+      const as = S.assignments.filter((a) => a.evaluatee_id === sel.id && a.topic_id === t.id);
+      const inds = indsOf(t.id);
+      rep = '<div class="dm-tw"><table><thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>ตนเอง</th>' + as.map((a) => '<th>' + esc(userById(a.committee_id)?.full_name) + '<br><small>' + (a.role === 'chair' ? 'ประธาน' : 'กรรมการร่วม') + '</small></th>').join('') + '</tr></thead><tbody>' +
+        inds.map((i) => '<tr><td>' + esc(i.name) + '</td><td>' + i.weight + '</td><td>' + scoreText(i.type, S.self[sel.id + '-' + i.id]) + '</td>' + as.map((a) => '<td>' + scoreText(i.type, S.cs[a.id + '-' + i.id]) + '</td>').join('') + '</tr>').join('') +
+        '<tr class="dm-total"><td colspan="3">ร้อยละรวม</td>' + as.map((a) => '<td>' + pctOfAssign(a) + '%</td>').join('') + '</tr></tbody></table></div>' +
+        as.map((a) => '<p><b>' + esc(userById(a.committee_id)?.full_name) + '</b> ' + badge(a.status) + '<br>' + (esc(a.comment) || '<span class="dm-muted">ยังไม่มีความคิดเห็น</span>') + '</p>').join('');
+    }
+    return '<h3>รายงาน</h3>' + uc('A10 A11 A12', 'คนที่ 1') + '<h4>ร้อยละการบันทึกข้อมูล</h4><div class="dm-tw"><table><tbody>' + prog + '</tbody></table></div>' +
+      '<h4>รายงานรายบุคคล</h4><select data-change="pickReport">' + ev.map((u) => '<option value="' + u.id + '"' + (sel && u.id === sel.id ? ' selected' : '') + '>' + esc(u.full_name) + '</option>').join('') + '</select>' + rep;
+  };
+
+  V['e-ind'] = () => {
+    const t = openTopic(); const me = S.user;
+    if (!t) return '<h3>ตัวชี้วัดของฉัน</h3><p class="dm-err">ยังไม่เปิดการประเมิน</p>';
+    const inds = indsOf(t.id); const pct = progressOf(me.id, t.id);
+    return '<h3>ตัวชี้วัดของฉัน</h3>' + uc('E3 E4 E5 E6 E7 E8', 'คนที่ 3') + flash() +
+      '<p>' + esc(t.title) + '</p><div class="dm-prog"><span>บันทึกแล้ว ' + pct + '%</span><div class="dm-bar"><i style="width:' + pct + '%"></i></div><button data-act="nav" data-v="e-print">Export PDF</button></div>' +
+      inds.map((i) => {
+        const ev = S.evidences.filter((e) => e.evaluatee_id === me.id && e.indicator_id === i.id);
+        const sc = S.self[me.id + '-' + i.id];
+        const st = [['มีรายละเอียด', ev.length > 0], ['มีไฟล์/URL', ev.some((e) => e.file || e.url)], ['มีคะแนนตนเอง', sc !== undefined]];
+        return '<div class="dm-ind"><div class="dm-ind-h"><b>' + esc(i.name) + '</b><span>น้ำหนัก ' + i.weight + ' · ' + (i.type === 'yes_no' ? 'มี/ไม่มี' : 'สเกล 1–4') + '</span></div><p class="dm-muted">' + esc(i.detail) + ' · หลักฐาน: ' + esc(i.note) + '</p>' +
+          '<p class="dm-steps">' + st.map(([k, ok]) => '<span class="' + (ok ? 'ok' : 'no') + '">' + (ok ? '✓' : '✗') + ' ' + k + '</span>').join('') + '</p>' +
+          '<form data-form="selfscore" data-id="' + i.id + '" class="dm-row">คะแนนตนเอง ' + scoreSelect('s', i.type, sc, false) + '<button>บันทึกคะแนน</button></form>' +
+          '<ul class="dm-ev">' + ev.map((e) => '<li>' + esc(e.detail) + (e.file ? ' · <span class="dm-file">📄 ' + esc(e.file) + '</span>' : '') + (e.url ? ' · <a href="' + esc(e.url) + '" target="_blank" rel="noopener">ลิงก์</a>' : '') + ' <button class="dm-link dm-danger" data-act="delev" data-id="' + e.id + '">ลบ</button></li>').join('') + '</ul>' +
+          '<form data-form="addev" data-id="' + i.id + '" class="dm-row"><input name="detail" placeholder="รายละเอียดผลงาน (บังคับ)"><input name="url" placeholder="URL (ถ้ามี)"><input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png"><button>เพิ่มรายการ</button></form></div>';
+      }).join('');
+  };
+  V['e-comments'] = () => '<h3>ความคิดเห็นของกรรมการ</h3>' + uc('E9', 'คนที่ 3') +
+    (S.assignments.filter((a) => a.evaluatee_id === S.user.id).map((a) => '<div class="dm-ind"><b>' + esc(userById(a.committee_id)?.full_name) + '</b> (' + (a.role === 'chair' ? 'ประธาน' : 'กรรมการร่วม') + ') ' + badge(a.status) + '<p>' + (esc(a.comment) || '<span class="dm-muted">ยังไม่มีความคิดเห็น</span>') + '</p></div>').join('') || '<p class="dm-muted">ยังไม่มีกรรมการ</p>');
+  V['e-profile'] = () => { const u = S.user; return '<h3>ข้อมูลส่วนตัว</h3>' + uc('E2', 'คนที่ 3') + flash() +
+    '<form data-form="profile" class="dm-col"><label>ชื่อ-สกุล <input name="full_name" value="' + esc(u.full_name) + '"></label><label>อีเมล <input name="email" value="' + esc(u.email) + '"></label><label>โทรศัพท์ <input name="phone" value="' + esc(u.phone) + '"></label><label>ตำแหน่ง <input name="position" value="' + esc(u.position) + '"></label><button>บันทึก</button></form>'; };
+  V['e-print'] = () => { const t = openTopic(); const u = S.user; return '<div class="dm-doc"><p class="dm-hint">หน้าพิมพ์ ในระบบจริงกดปุ่มแล้วเลือก “Save as PDF” (' + 'E8 · คนที่ 3)</p><h3 style="text-align:center">แบบรายงานการประเมินตนเอง</h3><p>' + esc(t ? t.title : '') + '<br>' + esc(u.full_name) + ' ตำแหน่ง ' + esc(u.position) + '</p>' +
+    '<div class="dm-tw"><table><thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>คะแนนตนเอง</th><th>รายละเอียด/หลักฐาน</th></tr></thead><tbody>' + (t ? indsOf(t.id).map((i) => '<tr><td>' + esc(i.name) + '</td><td>' + i.weight + '</td><td>' + scoreText(i.type, S.self[u.id + '-' + i.id]) + '</td><td>' + S.evidences.filter((e) => e.evaluatee_id === u.id && e.indicator_id === i.id).map((e) => esc(e.detail)).join('<br>') + '</td></tr>').join('') : '') + '</tbody></table></div>' +
+    '<p style="margin-top:28px">ลงชื่อ ........................................ ผู้รับการประเมิน</p><button data-act="nav" data-v="e-ind">← กลับ</button></div>'; };
+
+  const myAssign = () => S.assignments.find((a) => a.id === S.sel && a.committee_id === S.user.id);
+  V['c-list'] = () => '<h3>ผู้รับการประเมินที่ต้องประเมิน</h3>' + uc('C1', 'คนที่ 2') +
+    '<div class="dm-tw"><table><thead><tr><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>บทบาทของฉัน</th><th>สถานะ</th><th></th></tr></thead><tbody>' +
+    S.assignments.filter((a) => a.committee_id === S.user.id).map((a) => { const e = userById(a.evaluatee_id); return '<tr><td>' + esc(e?.full_name) + '</td><td>' + esc(e?.position) + '</td><td>' + (a.role === 'chair' ? 'ประธาน' : 'กรรมการร่วม') + '</td><td>' + badge(a.status) + '</td><td class="dm-act"><button class="dm-link" data-act="eval" data-id="' + a.id + '">ประเมิน</button> <button class="dm-link" data-act="result" data-id="' + a.id + '">ดูผล</button></td></tr>'; }).join('') +
+    '</tbody></table></div>';
+  V['c-eval'] = () => {
+    const a = myAssign(); if (!a) return '<p class="dm-err">ไม่พบรายการประเมิน</p>';
+    const e = userById(a.evaluatee_id); const locked = a.status === 'confirmed';
+    return '<button class="dm-link" data-act="nav" data-v="c-list">← รายชื่อ</button><h3>ประเมิน: ' + esc(e.full_name) + ' ' + badge(a.status) + '</h3>' + uc('C2 C3 C4 C5 C7 C8', 'คนที่ 2') + flash() +
+      '<form data-form="scores">' + indsOf(a.topic_id).map((i) => {
+        const ev = S.evidences.filter((x) => x.evaluatee_id === e.id && x.indicator_id === i.id);
+        return '<div class="dm-ind"><div class="dm-ind-h"><b>' + esc(i.name) + '</b><span>น้ำหนัก ' + i.weight + '</span></div><p class="dm-muted">' + esc(i.detail) + '</p>' +
+          '<p>คะแนนประเมินตนเอง: <b>' + scoreText(i.type, S.self[e.id + '-' + i.id]) + '</b></p>' +
+          '<ul class="dm-ev">' + (ev.map((x) => '<li>' + esc(x.detail) + (x.file ? ' · 📄 ' + esc(x.file) : '') + (x.url ? ' · <a href="' + esc(x.url) + '" target="_blank" rel="noopener">ลิงก์</a>' : '') + '</li>').join('') || '<li class="dm-muted">ไม่มีหลักฐาน</li>') + '</ul>' +
+          '<p>คะแนนที่ให้: ' + scoreSelect('s' + i.id, i.type, S.cs[a.id + '-' + i.id], locked) + '</p></div>';
+      }).join('') +
+      '<label class="dm-col">ความคิดเห็นสรุป<textarea name="comment" rows="3"' + (locked ? ' disabled' : '') + '>' + esc(a.comment) + '</textarea></label>' + (locked ? '' : '<button>บันทึกร่าง</button>') + '</form>' +
+      '<div class="dm-ind"><b>ลายเซ็น</b> ' + (a.signature ? '<span class="dm-sign">✍ ' + esc(a.signature) + '</span>' : '<span class="dm-muted">ยังไม่แนบ</span>') +
+      (locked ? '' : '<form data-form="sign" class="dm-row"><input type="file" name="f" accept=".png,.jpg,.jpeg"><button>อัปโหลดลายเซ็น</button></form>') + '</div>' +
+      (locked ? '<p class="dm-ok">ยืนยันผลแล้ว แก้ไขไม่ได้</p>' : '<button class="dm-primary" data-act="confirm">ยืนยันและส่งผล</button>');
+  };
+  V['c-result'] = () => {
+    const a = myAssign(); if (!a) return '<p class="dm-err">ไม่พบรายการประเมิน</p>';
+    const e = userById(a.evaluatee_id);
+    return '<button class="dm-link" data-act="nav" data-v="c-list">← รายชื่อ</button><h3>ผลการประเมิน: ' + esc(e.full_name) + ' ' + badge(a.status) + '</h3>' + uc('C6', 'คนที่ 2') +
+      '<div class="dm-tw"><table><thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>ตนเอง</th><th>ที่ให้</th><th>คะแนนถ่วง</th></tr></thead><tbody>' +
+      indsOf(a.topic_id).map((i) => { const s = S.cs[a.id + '-' + i.id]; return '<tr><td>' + esc(i.name) + '</td><td>' + i.weight + '</td><td>' + scoreText(i.type, S.self[e.id + '-' + i.id]) + '</td><td>' + scoreText(i.type, s) + '</td><td>' + (s === undefined ? '-' : Math.round(weighted(i.type, s, i.weight) * 100) / 100) + '</td></tr>'; }).join('') +
+      '<tr class="dm-total"><td colspan="4">ร้อยละรวม</td><td>' + pctOfAssign(a) + '%</td></tr></tbody></table></div><p><b>ความคิดเห็น:</b> ' + (esc(a.comment) || '-') + '</p><p><b>ลายเซ็น:</b> ' + (a.signature ? '✍ ' + esc(a.signature) : '-') + '</p>';
+  };
+
+  // ---------- actions ----------
+  function login(u) {
+    S.user = u;
+    go(u.must ? 'changepw' : NAV[u.role][0][0]);
+  }
+  const ACT = {
+    quick: (el) => login(userById(Number(el.dataset.id))),
+    logout: () => { S.user = null; go('login'); },
+    nav: (el) => go(el.dataset.v),
+    reset: () => { S = seed(); render(); },
+    resetpw: (el) => { const u = userById(Number(el.dataset.id)); u.pw = '1234'; u.must = 1; S.msg = 'รีเซ็ตรหัสของ ' + u.username + ' เป็น 1234 แล้ว'; S.err = ''; render(); },
+    deluser: (el) => { const id = Number(el.dataset.id); if (!confirm('ลบผู้ใช้นี้ใช่ไหม')) return; S.users = S.users.filter((u) => u.id !== id); S.assignments = S.assignments.filter((a) => a.evaluatee_id !== id && a.committee_id !== id); S.msg = 'ลบแล้ว'; render(); },
+    pickTopic: (el) => go('a-topics', { topicSel: Number(el.dataset.id) }),
+    delind: (el) => { const id = Number(el.dataset.id); S.indicators = S.indicators.filter((i) => i.id !== id); S.msg = 'ลบตัวชี้วัดแล้ว'; render(); },
+    delassign: (el) => { const id = Number(el.dataset.id); S.assignments = S.assignments.filter((a) => a.id !== id); S.msg = 'ยกเลิกการมอบหมายแล้ว'; render(); },
+    delev: (el) => { const id = Number(el.dataset.id); S.evidences = S.evidences.filter((e) => !(e.id === id && e.evaluatee_id === S.user.id)); S.msg = 'ลบรายการแล้ว'; render(); },
+    eval: (el) => go('c-eval', { sel: Number(el.dataset.id) }),
+    result: (el) => go('c-result', { sel: Number(el.dataset.id) }),
+    confirm: () => {
+      const a = myAssign(); const inds = indsOf(a.topic_id);
+      const done = inds.filter((i) => S.cs[a.id + '-' + i.id] !== undefined).length;
+      S.msg = '';
+      if (done < inds.length) { S.err = 'ยังให้คะแนนไม่ครบ (' + done + '/' + inds.length + ')'; return render(); }
+      if (!a.signature) { S.err = 'กรุณาแนบลายเซ็นก่อนยืนยัน'; return render(); }
+      if (!confirm('ยืนยันผลแล้วจะแก้ไขไม่ได้อีก ยืนยันไหม')) return;
+      a.status = 'confirmed'; S.err = ''; S.msg = 'ยืนยันผลการประเมินสำเร็จ'; render();
+    },
+  };
+  const FORM = {
+    login: (f) => {
+      const u = S.users.find((x) => x.username === f.u.value.trim());
+      if (!f.u.value.trim() || !f.p.value) { S.err = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'; return render(); }
+      if (!u || u.pw !== f.p.value) { S.err = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'; return render(); }
+      login(u);
+    },
+    changepw: (f) => {
+      if (f.o.value !== S.user.pw) { S.err = 'รหัสผ่านเดิมไม่ถูกต้อง'; return render(); }
+      if (f.n.value.length < 6) { S.err = 'รหัสใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร'; return render(); }
+      if (f.n.value !== f.c.value) { S.err = 'ยืนยันรหัสผ่านไม่ตรงกัน'; return render(); }
+      S.user.pw = f.n.value; S.user.must = 0; go(NAV[S.user.role][0][0]);
+    },
+    adduser: (f) => {
+      const username = f.username.value.trim(), full_name = f.full_name.value.trim();
+      if (!username || !full_name) { S.err = 'กรุณากรอก: username, full_name'; S.msg = ''; return render(); }
+      if (S.users.some((u) => u.username === username)) { S.err = 'ชื่อผู้ใช้นี้มีแล้ว'; S.msg = ''; return render(); }
+      S.users.push({ id: uid(), username, pw: '1234', full_name, email: '', phone: '', position: f.position.value.trim(), role: f.role.value, must: 1 });
+      S.err = ''; S.msg = 'เพิ่มผู้ใช้สำเร็จ'; render();
+    },
+    addtopic: (f) => {
+      const title = f.title.value.trim(), start = f.start.value, end = f.end.value;
+      S.msg = '';
+      if (!title || !start || !end) { S.err = 'กรุณากรอก: title, start_date, end_date'; return render(); }
+      if (start > end) { S.err = 'วันเริ่มต้องไม่เกินวันสิ้นสุด'; return render(); }
+      const id = uid(); S.topics.push({ id, title, start, end }); S.topicSel = id; S.err = ''; S.msg = 'เพิ่มหัวข้อสำเร็จ'; render();
+    },
+    addind: (f) => {
+      const name = f.name.value.trim(), w = Number(f.weight.value);
+      S.msg = '';
+      if (!name) { S.err = 'กรุณากรอก: name'; return render(); }
+      if (!(w > 0)) { S.err = 'น้ำหนักต้องมากกว่า 0'; return render(); }
+      S.indicators.push({ id: uid(), topic_id: S.topicSel, name, detail: f.detail.value.trim(), weight: w, type: f.type.value, note: f.note.value.trim() });
+      S.err = ''; S.msg = 'เพิ่มตัวชี้วัดสำเร็จ'; render();
+    },
+    addassign: (f) => {
+      const e = Number(f.e.value), c = Number(f.c.value);
+      S.msg = '';
+      if (S.assignments.some((a) => a.topic_id === 1 && a.evaluatee_id === e && a.committee_id === c)) { S.err = 'มอบหมายกรรมการคนนี้ไปแล้ว'; return render(); }
+      S.assignments.push({ id: uid(), topic_id: 1, evaluatee_id: e, committee_id: c, role: f.r.value, status: 'pending', comment: '', signature: '' });
+      S.err = ''; S.msg = 'มอบหมายสำเร็จ'; render();
+    },
+    selfscore: (f) => {
+      S.msg = '';
+      if (f.s.value === '') { S.err = 'กรุณาเลือกคะแนน'; return render(); }
+      S.self[S.user.id + '-' + f.dataset.id] = Number(f.s.value); S.err = ''; S.msg = 'บันทึกคะแนนสำเร็จ'; render();
+    },
+    addev: (f) => {
+      S.msg = '';
+      if (!f.detail.value.trim()) { S.err = 'กรุณากรอก: detail'; return render(); }
+      const file = f.file.files[0];
+      if (file && !/\.(pdf|jpe?g|png)$/i.test(file.name)) { S.err = 'รับเฉพาะไฟล์ PDF, JPG, PNG'; return render(); }
+      S.evidences.push({ id: uid(), evaluatee_id: S.user.id, indicator_id: Number(f.dataset.id), detail: f.detail.value.trim(), file: file ? file.name : '', url: f.url.value.trim() });
+      S.err = ''; S.msg = 'เพิ่มรายการสำเร็จ'; render();
+    },
+    profile: (f) => {
+      S.msg = '';
+      if (!f.full_name.value.trim()) { S.err = 'กรุณากรอก: full_name'; return render(); }
+      if (!/^\S+@\S+\.\S+$/.test(f.email.value.trim())) { S.err = 'รูปแบบอีเมลไม่ถูกต้อง'; return render(); }
+      Object.assign(S.user, { full_name: f.full_name.value.trim(), email: f.email.value.trim(), phone: f.phone.value.trim(), position: f.position.value.trim() });
+      S.err = ''; S.msg = 'บันทึกข้อมูลส่วนตัวสำเร็จ'; render();
+    },
+    scores: (f) => {
+      const a = myAssign(); S.msg = '';
+      if (a.status === 'confirmed') { S.err = 'ยืนยันผลแล้ว แก้ไขไม่ได้'; return render(); }
+      indsOf(a.topic_id).forEach((i) => { const v = f['s' + i.id].value; if (v !== '') S.cs[a.id + '-' + i.id] = Number(v); });
+      a.comment = f.comment.value.trim(); a.status = 'draft'; S.err = ''; S.msg = 'บันทึกร่างสำเร็จ'; render();
+    },
+    sign: (f) => {
+      const a = myAssign(); const file = f.f.files[0]; S.msg = '';
+      if (!file) { S.err = 'กรุณาเลือกไฟล์ลายเซ็น'; return render(); }
+      if (!/\.(jpe?g|png)$/i.test(file.name)) { S.err = 'ลายเซ็นต้องเป็นไฟล์ .png หรือ .jpg'; return render(); }
+      a.signature = file.name; S.err = ''; S.msg = 'แนบลายเซ็นแล้ว'; render();
+    },
+  };
+
+  function render() {
+    const u = S.user;
+    let nav = '';
+    if (u && S.view !== 'changepw') {
+      nav = '<div class="dm-nav">' + NAV[u.role].map(([v, t]) => '<button class="' + (S.view === v ? 'on' : '') + '" data-act="nav" data-v="' + v + '">' + t + '</button>').join('') +
+        '<span class="dm-who">' + esc(u.full_name) + ' · ' + ROLE[u.role] + '</span><button data-act="logout">ออกจากระบบ</button></div>';
+    }
+    root.innerHTML = '<div class="dm-bar-top"><span class="dm-dots"><i></i><i></i><i></i></span><span class="dm-url">http://192.168.1.10:5173/' + (S.view === 'login' ? 'login' : S.view.replace('a-', 'admin/').replace('e-', 'evaluatee/').replace('c-', 'committee/')) + '</span><button class="dm-reset" data-act="reset" title="ล้างข้อมูลกลับเป็น seed">↺ เริ่มใหม่</button></div>' +
+      nav + '<div class="dm-body">' + (V[S.view] ? V[S.view]() : '') + '</div>';
+  }
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]');
+    if (b && root.contains(b)) { e.preventDefault(); ACT[b.dataset.act] && ACT[b.dataset.act](b); }
+  });
+  root.addEventListener('submit', (e) => {
+    const f = e.target.closest('[data-form]');
+    if (f) { e.preventDefault(); FORM[f.dataset.form] && FORM[f.dataset.form](f); }
+  });
+  root.addEventListener('change', (e) => {
+    if (e.target.dataset.change === 'pickReport') { S.reportSel = Number(e.target.value); render(); }
+  });
+  render();
+})();
 </script>
 </body>
 </html>
