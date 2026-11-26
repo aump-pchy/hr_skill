@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup ระบบประเมินบุคลากร</title>
+<!-- Tailwind v4 แบบไม่ต้องติดตั้ง (ใช้ดูหน้าตาเท่านั้น วันแข่งใช้ @tailwindcss/vite ตามคู่มือ) -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+<!-- class ย่อชุดเดียวกับ src/style.css ในคู่มือซ้อม -->
+<style type="text/tailwindcss">
+  @layer components {
+    .page { @apply max-w-5xl mx-auto p-6; }
+    .title { @apply text-2xl font-bold text-blue-800 mb-4; }
+    .card { @apply bg-white rounded-lg shadow p-4 mb-4; }
+    .label { @apply block text-sm text-gray-600 mb-1; }
+    .input { @apply border border-blue-200 rounded px-3 py-2 w-full bg-white focus:outline-none focus:border-blue-500; }
+    .btn { @apply bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 disabled:opacity-50 cursor-pointer; }
+    .btn-light { @apply border border-blue-600 text-blue-600 bg-white rounded px-4 py-2 hover:bg-blue-50 cursor-pointer; }
+    .link { @apply text-blue-600 hover:underline cursor-pointer; }
+    .link-red { @apply text-red-600 hover:underline cursor-pointer; }
+    .tbl { @apply w-full bg-white rounded-lg shadow; }
+    .tbl th { @apply bg-blue-50 text-left text-blue-900 p-2; }
+    .tbl td { @apply border-t border-blue-50 p-2 align-top; }
+    .msg-error { @apply text-red-600 mb-2; }
+    .msg-ok { @apply text-green-700 mb-2; }
+    .badge { @apply inline-block text-xs rounded-full px-2 py-0.5 bg-blue-100 text-blue-800; }
+  }
+  @media print { .no-print { display: none !important; } }
+</style>
+</head>
+<body class="bg-blue-50/40 min-h-screen">
+<div id="app"></div>
+
+<script>
+{
+// ===== ข้อมูลจำลอง (เหมือน seed.sql) — แทนฐานข้อมูลจริง =====
+const db = {
+  users: [
+    { id: 1, username: 'admin', password: '1234', full_name: 'งานบุคลากร วท.เลย', email: 'hr@ltc.ac.th', phone: '', position: 'เจ้าหน้าที่งานบุคลากร', role: 'admin', must: 0 },
+    { id: 2, username: 'eva1', password: '1234', full_name: 'สมชาย ใจดี', email: 'somchai@ltc.ac.th', phone: '', position: 'ครู', role: 'evaluatee', must: 0 },
+    { id: 3, username: 'eva2', password: '1234', full_name: 'สมหญิง รักเรียน', email: 'somying@ltc.ac.th', phone: '', position: 'ครูผู้ช่วย', role: 'evaluatee', must: 1 },
+    { id: 4, username: 'com1', password: '1234', full_name: 'ประธาน ประเมินดี', email: 'chair@ltc.ac.th', phone: '', position: 'รองผู้อำนวยการ', role: 'committee', must: 0 },
+    { id: 5, username: 'com2', password: '1234', full_name: 'กรรมการ ร่วมใจ', email: 'member@ltc.ac.th', phone: '', position: 'หัวหน้าแผนก', role: 'committee', must: 1 },
+  ],
+  topics: [{ id: 1, title: 'ประเมินผลการปฏิบัติงาน ภาคเรียนที่ 2/2569', description: 'ตัวอย่างหัวข้อสำหรับซ้อม', start_date: '2026-11-19', end_date: '2026-12-26' }],
+  indicators: [
+    { id: 1, topic_id: 1, name: 'การจัดการเรียนการสอน', detail: 'มีแผนการสอนและสื่อครบทุกรายวิชา', weight: 30, eval_type: 'scale_4', evidence_note: 'แผนการสอน (PDF)' },
+    { id: 2, topic_id: 1, name: 'การพัฒนาตนเอง', detail: 'เข้าอบรมอย่างน้อย 20 ชั่วโมงต่อปี', weight: 30, eval_type: 'scale_4', evidence_note: 'เกียรติบัตร' },
+    { id: 3, topic_id: 1, name: 'มีรายงานการวิจัยในชั้นเรียน', detail: 'ส่งรายงานภายในภาคเรียน', weight: 20, eval_type: 'yes_no', evidence_note: 'ไฟล์รายงาน' },
+    { id: 4, topic_id: 1, name: 'เข้าร่วมกิจกรรมวิทยาลัย', detail: 'เข้าร่วมกิจกรรมหลักของวิทยาลัย', weight: 20, eval_type: 'yes_no', evidence_note: 'ภาพถ่ายหรือ URL' },
+  ],
+  assignments: [
+    { id: 1, topic_id: 1, evaluatee_id: 2, committee_id: 4, committee_role: 'chair', status: 'pending', overall_comment: '', signature: '' },
+    { id: 2, topic_id: 1, evaluatee_id: 2, committee_id: 5, committee_role: 'member', status: 'draft', overall_comment: 'ผลงานดี ควรเพิ่มหลักฐานการอบรม', signature: '' },
+    { id: 3, topic_id: 1, evaluatee_id: 3, committee_id: 4, committee_role: 'chair', status: 'pending', overall_comment: '', signature: '' },
+  ],
+  selfScores: [{ evaluatee_id: 2, indicator_id: 1, score: 4 }, { evaluatee_id: 2, indicator_id: 2, score: 3 }, { evaluatee_id: 2, indicator_id: 3, score: 1 }],
+  evidences: [
+    { id: 1, evaluatee_id: 2, indicator_id: 1, detail: 'แผนการสอนวิชาการเขียนโปรแกรม', file: '', url: 'https://example.com/plan.pdf' },
+    { id: 2, evaluatee_id: 2, indicator_id: 1, detail: 'สื่อการสอนออนไลน์', file: '', url: 'https://example.com/course' },
+    { id: 3, evaluatee_id: 2, indicator_id: 2, detail: 'อบรม Node.js 12 ชั่วโมง', file: '', url: '' },
+  ],
+  committeeScores: [{ assignment_id: 2, indicator_id: 1, score: 4 }, { assignment_id: 2, indicator_id: 2, score: 2 }],
+};
+let nextId = 100;
+const TODAY = '2026-11-26';
+
+// ===== สถานะหน้าจอ (เหมือน ref() ใน Vue) =====
+const state = { user: null, view: 'login', params: {}, error: '', message: '', editingId: null, role: 'evaluatee', topicId: 1, reportId: '', ask: null };
+
+const statusText = { pending: 'ยังไม่ประเมิน', draft: 'บันทึกร่าง', confirmed: 'ยืนยันแล้ว' };
+const roleText = { chair: 'ประธาน', member: 'กรรมการร่วม' };
+
+// ===== ตัวช่วย =====
+const e = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const val = (id) => document.getElementById(id)?.value.trim() ?? '';
+const user = (id) => db.users.find((u) => u.id === id);
+const topicIndicators = (tid) => db.indicators.filter((i) => i.topic_id === tid);
+const openTopic = () => db.topics.find((t) => t.start_date <= TODAY && TODAY <= t.end_date) || db.topics[0];
+const selfScore = (eid, iid) => db.selfScores.find((s) => s.evaluatee_id === eid && s.indicator_id === iid)?.score ?? null;
+const comScore = (aid, iid) => db.committeeScores.find((s) => s.assignment_id === aid && s.indicator_id === iid)?.score ?? null;
+const weighted = (ind, score) => score === null ? 0 : ind.eval_type === 'yes_no' ? score * ind.weight : (score / 4) * ind.weight;
+function totalPercent(a) {
+  const inds = topicIndicators(a.topic_id);
+  const sumW = inds.reduce((s, i) => s + i.weight, 0);
+  const got = inds.reduce((s, i) => s + weighted(i, comScore(a.id, i.id)), 0);
+  return sumW ? Math.round((got / sumW) * 1000) / 10 : 0;
+}
+function homeOf(role) { return { admin: 'admin-dashboard', committee: 'committee-list', evaluatee: 'eva-indicators' }[role]; }
+function ok(msg) { state.message = msg; state.error = ''; render(); }
+function fail(msg) { state.error = msg; state.message = ''; render(); }
+function scoreOptions(type, current, id, disabled) {
+  const opts = type === 'scale_4' ? [[1, '1'], [2, '2'], [3, '3'], [4, '4']] : [[1, 'มี'], [0, 'ไม่มี']];
+  return `<select id="${id}" class="input w-32" ${disabled ? 'disabled' : ''}>
+    <option value="">-</option>
+    ${opts.map(([v, t]) => `<option value="${v}" ${current === v ? 'selected' : ''}>${t}</option>`).join('')}
+  </select>`;
+}
+
+// ===== แถบบอกว่าหน้านี้คือไฟล์ไหน / ใช้ API อะไร (เฉพาะ mockup) =====
+const hints = {
+  login: ['views/LoginView.vue', 'POST /api/auth/login'],
+  changepw: ['views/ChangePasswordView.vue', 'PUT /api/auth/change-password'],
+  'admin-dashboard': ['views/admin/DashboardView.vue', 'GET /api/reports/dashboard'],
+  'admin-users': ['views/admin/UsersView.vue', 'GET POST PUT DELETE /api/users, PUT /api/users/:id/reset-password'],
+  'admin-topics': ['views/admin/TopicsView.vue', 'GET POST PUT DELETE /api/topics'],
+  'admin-indicators': ['views/admin/IndicatorsView.vue', 'GET /api/indicators?topic_id=, POST PUT DELETE /api/indicators'],
+  'admin-assignments': ['views/admin/AssignmentsView.vue', 'GET /api/assignments?topic_id=, POST PUT DELETE /api/assignments'],
+  'admin-reports': ['views/admin/ReportsView.vue', 'GET /api/reports/progress, GET /api/reports/evaluatees/:id'],
+  'committee-list': ['views/committee/ListView.vue', 'GET /api/committee/assignments'],
+  'committee-evaluate': ['views/committee/EvaluateView.vue', 'PUT .../scores, POST .../signature, PUT .../confirm'],
+  'committee-result': ['views/committee/ResultView.vue', 'GET /api/committee/assignments/:id'],
+  'eva-indicators': ['views/evaluatee/IndicatorsView.vue', 'GET /api/evaluatee/indicators, PUT self-scores, POST DELETE evidences'],
+  'eva-profile': ['views/evaluatee/ProfileView.vue', 'GET /api/auth/me, PUT /api/evaluatee/profile'],
+  'eva-comments': ['views/evaluatee/CommentsView.vue', 'GET /api/evaluatee/comments'],
+  'eva-print': ['views/evaluatee/PrintView.vue', 'GET /api/auth/me + /api/evaluatee/indicators'],
+};
+
+// ===== หน้า: เข้าสู่ระบบ =====
+function LoginView() {
+  const accounts = [['admin', 'งานบุคลากร'], ['eva1', 'ผู้รับการประเมิน'], ['eva2', 'ต้องเปลี่ยนรหัส'], ['com1', 'ประธานกรรมการ'], ['com2', 'ต้องเปลี่ยนรหัส']];
+  return `
+  <div class="min-h-screen flex items-center justify-center bg-blue-600 p-6">
+    <div class="w-full max-w-sm">
+      <form onsubmit="A.login(event)" class="bg-white rounded-xl shadow-lg p-8">
+        <h1 class="text-2xl font-bold text-blue-800 mb-1">ระบบประเมินบุคลากร</h1>
+        <p class="text-gray-500 mb-6">เข้าสู่ระบบเพื่อใช้งาน</p>
+        <label class="label">ชื่อผู้ใช้</label>
+        <input id="username" class="input mb-3" autocomplete="off" />
+        <label class="label">รหัสผ่าน</label>
+        <input id="password" type="password" class="input mb-4" />
+        ${state.error ? `<p class="msg-error">${e(state.error)}</p>` : ''}
+        <button class="btn w-full">เข้าสู่ระบบ</button>
+      </form>
+      <div class="mt-4 text-blue-50 text-sm">
+        <p class="mb-2">บัญชีทดสอบ (รหัส 1234) กดเพื่อกรอกให้:</p>
+        <div class="flex flex-wrap gap-2">
+          ${accounts.map(([u, t]) => `<button type="button" onclick="A.fill('${u}')" class="bg-white/15 hover:bg-white/25 rounded px-2 py-1">${u} · ${t}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===== หน้า: เปลี่ยนรหัสผ่าน =====
+function ChangePasswordView() {
+  return `
+  <div class="page max-w-md">
+    <h1 class="title">เปลี่ยนรหัสผ่าน</h1>
+    <form onsubmit="A.changePassword(event)" class="card">
+      <p class="text-gray-600 mb-4">เข้าใช้งานครั้งแรก กรุณาเปลี่ยนรหัสผ่านก่อน</p>
+      <label class="label">รหัสผ่านเดิม</label>
+      <input id="old" type="password" class="input mb-3" />
+      <label class="label">รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)</label>
+      <input id="new" type="password" class="input mb-3" />
+      <label class="label">ยืนยันรหัสผ่านใหม่</label>
+      <input id="confirm" type="password" class="input mb-4" />
+      ${msgs()}
+      <button class="btn">บันทึก</button>
+    </form>
+  </div>`;
+}
+
+const msgs = () => `${state.error ? `<p class="msg-error">${e(state.error)}</p>` : ''}${state.message ? `<p class="msg-ok">${e(state.message)}</p>` : ''}`;
+
+// ===== หน้า admin: Dashboard =====
+function DashboardView() {
+  const ev = db.users.filter((u) => u.role === 'evaluatee').length;
+  const cm = db.users.filter((u) => u.role === 'committee').length;
+  const done = db.assignments.filter((a) => a.status === 'confirmed');
+  const avg = done.length ? Math.round((done.reduce((s, a) => s + totalPercent(a), 0) / done.length) * 10) / 10 : 0;
+  const card = (t, v) => `<div class="card"><p class="text-gray-500">${t}</p><p class="text-3xl font-bold text-blue-700">${v}</p></div>`;
+  return `
+  <div class="page">
+    <h1 class="title">Dashboard</h1>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      ${card('ผู้รับการประเมิน', ev)}${card('กรรมการ', cm)}${card('ยืนยันผลแล้ว', `${done.length} / ${db.assignments.length}`)}${card('คะแนนเฉลี่ย', avg + '%')}
+    </div>
+  </div>`;
+}
+
+// ===== หน้า admin: ผู้ใช้ (A1–A3) =====
+function UsersView() {
+  const rows = db.users.filter((u) => u.role === state.role);
+  const f = state.editingId ? user(state.editingId) : {};
+  const input = (id, label, span) => `<div class="${span ? 'sm:col-span-2' : ''}"><label class="label">${label}</label><input id="${id}" value="${e(f[id])}" class="input" /></div>`;
+  return `
+  <div class="page">
+    <h1 class="title">จัดการผู้ใช้</h1>
+    <div class="flex gap-2 mb-4">
+      <button class="${state.role === 'evaluatee' ? 'btn' : 'btn-light'}" onclick="A.changeRole('evaluatee')">ผู้รับการประเมิน</button>
+      <button class="${state.role === 'committee' ? 'btn' : 'btn-light'}" onclick="A.changeRole('committee')">กรรมการ</button>
+    </div>
+    <form onsubmit="A.saveUser(event)" class="card grid gap-3 sm:grid-cols-2">
+      ${input('username', 'ชื่อผู้ใช้ (username)')}${input('full_name', 'ชื่อ-สกุล')}${input('email', 'อีเมล')}${input('phone', 'โทรศัพท์')}${input('position', 'ตำแหน่ง', true)}
+      <div class="sm:col-span-2 flex gap-2">
+        <button class="btn">${state.editingId ? 'บันทึกการแก้ไข' : 'เพิ่มผู้ใช้ (รหัสเริ่มต้น 1234)'}</button>
+        ${state.editingId ? `<button type="button" onclick="A.reset()" class="btn-light">ยกเลิก</button>` : ''}
+      </div>
+    </form>
+    ${msgs()}
+    <table class="tbl">
+      <thead><tr><th>ชื่อผู้ใช้</th><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>อีเมล</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map((r) => `<tr>
+          <td>${e(r.username)}</td><td>${e(r.full_name)}</td><td>${e(r.position)}</td><td>${e(r.email)}</td>
+          <td class="text-right whitespace-nowrap">
+            <button onclick="A.edit(${r.id})" class="link mr-3">แก้</button>
+            <button onclick="A.resetPassword(${r.id})" class="link mr-3">รีเซ็ตรหัส</button>
+            <button onclick="A.removeUser(${r.id})" class="link-red">ลบ</button>
+          </td></tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ===== หน้า admin: หัวข้อการประเมิน =====
+function TopicsView() {
+  const f = state.editingId ? db.topics.find((t) => t.id === state.editingId) : {};
+  return `
+  <div class="page">
+    <h1 class="title">หัวข้อการประเมิน</h1>
+    <form onsubmit="A.saveTopic(event)" class="card grid gap-3 sm:grid-cols-2">
+      <div class="sm:col-span-2"><label class="label">ชื่อหัวข้อ</label><input id="title" value="${e(f.title)}" class="input" /></div>
+      <div class="sm:col-span-2"><label class="label">รายละเอียด</label><input id="description" value="${e(f.description)}" class="input" /></div>
+      <div><label class="label">วันเริ่ม</label><input id="start_date" type="date" value="${e(f.start_date)}" class="input" /></div>
+      <div><label class="label">วันสิ้นสุด</label><input id="end_date" type="date" value="${e(f.end_date)}" class="input" /></div>
+      <div class="sm:col-span-2 flex gap-2">
+        <button class="btn">${state.editingId ? 'บันทึกการแก้ไข' : 'เพิ่มหัวข้อ'}</button>
+        ${state.editingId ? `<button type="button" onclick="A.reset()" class="btn-light">ยกเลิก</button>` : ''}
+      </div>
+    </form>
+    ${msgs()}
+    <table class="tbl">
+      <thead><tr><th>หัวข้อ</th><th>ช่วงเวลา</th><th>สถานะ</th><th></th></tr></thead>
+      <tbody>
+        ${db.topics.map((t) => `<tr>
+          <td>${e(t.title)}</td><td class="whitespace-nowrap">${e(t.start_date)} ถึง ${e(t.end_date)}</td>
+          <td><span class="badge">${t.start_date <= TODAY && TODAY <= t.end_date ? 'เปิดอยู่' : 'ปิด'}</span></td>
+          <td class="text-right whitespace-nowrap">
+            <button onclick="A.go('admin-indicators',{topicId:${t.id}})" class="link mr-3">ตัวชี้วัด</button>
+            <button onclick="A.edit(${t.id})" class="link mr-3">แก้</button>
+            <button onclick="A.removeTopic(${t.id})" class="link-red">ลบ</button>
+          </td></tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ===== หน้า admin: ตัวชี้วัด =====
+function IndicatorsView() {
+  const tid = state.params.topicId;
+  const f = state.editingId ? db.indicators.find((i) => i.id === state.editingId) : { eval_type: state.evalType || 'scale_4' };
+  const type = state.evalType || f.eval_type;
+  return `
+  <div class="page">
+    <button onclick="A.go('admin-topics')" class="link">← กลับไปหัวข้อ</button>
+    <h1 class="title mt-2">ตัวชี้วัด</h1>
+    <form onsubmit="A.saveIndicator(event)" class="card grid gap-3 sm:grid-cols-2">
+      <div class="sm:col-span-2"><label class="label">ชื่อตัวชี้วัด</label><input id="name" value="${e(f.name)}" class="input" /></div>
+      <div class="sm:col-span-2"><label class="label">รายละเอียด</label><input id="detail" value="${e(f.detail)}" class="input" /></div>
+      <div><label class="label">น้ำหนักคะแนน</label><input id="weight" type="number" min="1" value="${e(f.weight)}" class="input" /></div>
+      <div><label class="label">รูปแบบการประเมิน</label>
+        <select id="eval_type" onchange="A.pickType(this.value)" class="input">
+          <option value="scale_4" ${type === 'scale_4' ? 'selected' : ''}>สเกล 1–4</option>
+          <option value="yes_no" ${type === 'yes_no' ? 'selected' : ''}>มี / ไม่มี</option>
+        </select></div>
+      <div class="sm:col-span-2"><label class="label">หลักฐานที่ต้องแนบ</label><input id="evidence_note" value="${e(f.evidence_note)}" class="input" /></div>
+      ${type === 'scale_4' ? `<div class="sm:col-span-2 text-sm text-gray-600 bg-blue-50 rounded p-3">ระดับ 1 = ต่ำกว่าที่คาดหวังมาก · ระดับ 2 = ต่ำกว่าที่คาดหวัง · ระดับ 3 = ตามที่คาดหวัง · ระดับ 4 = สูงกว่าที่คาดหวัง</div>` : ''}
+      <div class="sm:col-span-2 flex gap-2">
+        <button class="btn">${state.editingId ? 'บันทึกการแก้ไข' : 'เพิ่มตัวชี้วัด'}</button>
+        ${state.editingId ? `<button type="button" onclick="A.reset()" class="btn-light">ยกเลิก</button>` : ''}
+      </div>
+    </form>
+    ${msgs()}
+    <table class="tbl">
+      <thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>รูปแบบ</th><th>หลักฐาน</th><th></th></tr></thead>
+      <tbody>
+        ${topicIndicators(tid).map((r) => `<tr>
+          <td>${e(r.name)}<br><span class="text-sm text-gray-500">${e(r.detail)}</span></td>
+          <td>${r.weight}</td><td>${r.eval_type === 'yes_no' ? 'มี/ไม่มี' : 'สเกล 1–4'}</td><td>${e(r.evidence_note)}</td>
+          <td class="text-right whitespace-nowrap">
+            <button onclick="A.edit(${r.id})" class="link mr-3">แก้</button>
+            <button onclick="A.removeIndicator(${r.id})" class="link-red">ลบ</button>
+          </td></tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ===== หน้า admin: มอบหมายกรรมการ =====
+function AssignmentsView() {
+  const rows = db.assignments.filter((a) => a.topic_id === state.topicId);
+  const people = (role) => db.users.filter((u) => u.role === role).map((u) => `<option value="${u.id}">${e(u.full_name)}</option>`).join('');
+  return `
+  <div class="page">
+    <h1 class="title">มอบหมายกรรมการ</h1>
+    <div class="card"><label class="label">หัวข้อการประเมิน</label>
+      <select onchange="A.pickTopic(this.value)" class="input">${db.topics.map((t) => `<option value="${t.id}" ${t.id === state.topicId ? 'selected' : ''}>${e(t.title)}</option>`).join('')}</select>
+    </div>
+    <form onsubmit="A.saveAssignment(event)" class="card grid gap-3 sm:grid-cols-3">
+      <div><label class="label">ผู้รับการประเมิน</label><select id="evaluatee_id" class="input"><option value="">-- เลือก --</option>${people('evaluatee')}</select></div>
+      <div><label class="label">กรรมการ</label><select id="committee_id" class="input"><option value="">-- เลือก --</option>${people('committee')}</select></div>
+      <div><label class="label">บทบาท</label><select id="committee_role" class="input"><option value="chair">ประธาน</option><option value="member">กรรมการร่วม</option></select></div>
+      <div class="sm:col-span-3"><button class="btn">มอบหมาย</button></div>
+    </form>
+    ${msgs()}
+    <table class="tbl">
+      <thead><tr><th>ผู้รับการประเมิน</th><th>กรรมการ</th><th>บทบาท</th><th>สถานะ</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map((a) => `<tr>
+          <td>${e(user(a.evaluatee_id)?.full_name)}</td><td>${e(user(a.committee_id)?.full_name)}</td>
+          <td><select onchange="A.changeCommitteeRole(${a.id}, this.value)" class="input py-1">
+            <option value="chair" ${a.committee_role === 'chair' ? 'selected' : ''}>ประธาน</option>
+            <option value="member" ${a.committee_role === 'member' ? 'selected' : ''}>กรรมการร่วม</option></select></td>
+          <td><span class="badge">${statusText[a.status]}</span></td>
+          <td class="text-right"><button onclick="A.removeAssignment(${a.id})" class="link-red">ยกเลิก</button></td></tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ===== หน้า admin: รายงาน =====
+function ReportsView() {
+  const inds = topicIndicators(state.topicId);
+  const evs = db.users.filter((u) => u.role === 'evaluatee');
+  const progress = evs.map((u) => {
+    const done = inds.filter((i) => selfScore(u.id, i.id) !== null).length;
+    return { u, done, total: inds.length, percent: inds.length ? Math.round((done / inds.length) * 100) : 0 };
+  });
+  const rid = Number(state.reportId);
+  const coms = db.assignments.filter((a) => a.topic_id === state.topicId && a.evaluatee_id === rid);
+  const ev = user(rid);
+  return `
+  <div class="page">
+    <h1 class="title">รายงานผลการประเมิน</h1>
+    <div class="card no-print"><label class="label">หัวข้อการประเมิน</label>
+      <select onchange="A.pickTopic(this.value)" class="input">${db.topics.map((t) => `<option value="${t.id}" ${t.id === state.topicId ? 'selected' : ''}>${e(t.title)}</option>`).join('')}</select>
+    </div>
+    <h2 class="font-bold text-blue-800 mb-2 no-print">ร้อยละการบันทึกข้อมูล</h2>
+    <table class="tbl mb-6 no-print">
+      <thead><tr><th>ผู้รับการประเมิน</th><th>บันทึกแล้ว</th><th class="w-1/2">ความก้าวหน้า</th></tr></thead>
+      <tbody>${progress.map((p) => `<tr><td>${e(p.u.full_name)}</td><td>${p.done} / ${p.total}</td>
+        <td><div class="bg-blue-100 rounded h-3"><div class="bg-blue-600 rounded h-3" style="width:${p.percent}%"></div></div><span class="text-sm">${p.percent}%</span></td></tr>`).join('')}</tbody>
+    </table>
+    <h2 class="font-bold text-blue-800 mb-2">รายงานรายบุคคล</h2>
+    <div class="flex gap-2 mb-4 no-print">
+      <select onchange="A.pickReport(this.value)" class="input">
+        <option value="">-- เลือกผู้รับการประเมิน --</option>
+        ${evs.map((u) => `<option value="${u.id}" ${u.id === rid ? 'selected' : ''}>${e(u.full_name)}</option>`).join('')}
+      </select>
+      ${ev ? `<button onclick="A.print()" class="btn-light whitespace-nowrap">พิมพ์</button>` : ''}
+    </div>
+    ${ev ? `<div class="card">
+      <p class="font-bold">${e(ev.full_name)} (${e(ev.position)})</p>
+      <div class="overflow-x-auto"><table class="tbl my-3">
+        <thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>ตนเอง</th>
+          ${coms.map((c) => `<th>${e(user(c.committee_id)?.full_name)}<br><span class="text-xs">${roleText[c.committee_role]}</span></th>`).join('')}</tr></thead>
+        <tbody>
+          ${inds.map((i) => `<tr><td>${e(i.name)}</td><td>${i.weight}</td><td>${selfScore(rid, i.id) ?? '-'}</td>
+            ${coms.map((c) => `<td>${comScore(c.id, i.id) ?? '-'}</td>`).join('')}</tr>`).join('')}
+          <tr class="font-bold"><td colspan="3">ร้อยละรวม</td>${coms.map((c) => `<td>${totalPercent(c)}%</td>`).join('')}</tr>
+        </tbody>
+      </table></div>
+      ${coms.map((c) => `<div class="mb-2"><b>${e(user(c.committee_id)?.full_name)}</b> <span class="badge">${statusText[c.status]}</span>
+        <p class="text-gray-700">${e(c.overall_comment) || 'ยังไม่มีความคิดเห็น'}</p></div>`).join('')}
+    </div>` : ''}
+  </div>`;
+}
+
+// ===== หน้ากรรมการ: รายชื่อ =====
+function CommitteeListView() {
+  const rows = db.assignments.filter((a) => a.committee_id === state.user.id);
+  return `
+  <div class="page">
+    <h1 class="title">ผู้รับการประเมินที่ต้องประเมิน</h1>
+    <table class="tbl">
+      <thead><tr><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>บทบาทของฉัน</th><th>สถานะ</th><th></th></tr></thead>
+      <tbody>${rows.map((a) => { const ev = user(a.evaluatee_id); return `<tr>
+        <td>${e(ev?.full_name)}</td><td>${e(ev?.position)}</td><td>${roleText[a.committee_role]}</td>
+        <td><span class="badge">${statusText[a.status]}</span></td>
+        <td class="text-right whitespace-nowrap">
+          <button onclick="A.go('committee-evaluate',{id:${a.id}})" class="link mr-3">ประเมิน</button>
+          <button onclick="A.go('committee-result',{id:${a.id}})" class="link">ดูผล</button>
+        </td></tr>`; }).join('')}</tbody>
+    </table>
+    ${rows.length ? '' : '<p class="text-gray-500 mt-3">ยังไม่มีผู้รับการประเมินที่มอบหมายให้</p>'}
+  </div>`;
+}
+
+// ===== หน้ากรรมการ: ประเมิน =====
+function EvaluateView() {
+  const a = db.assignments.find((x) => x.id === state.params.id);
+  const ev = user(a.evaluatee_id);
+  const locked = a.status === 'confirmed';
+  return `
+  <div class="page">
+    <button onclick="A.go('committee-list')" class="link">← รายชื่อ</button>
+    <h1 class="title mt-2">ประเมิน: ${e(ev.full_name)} <span class="badge align-middle">${statusText[a.status]}</span></h1>
+    ${topicIndicators(a.topic_id).map((i) => `
+      <div class="card">
+        <div class="flex justify-between gap-4"><p class="font-bold text-blue-800">${e(i.name)}</p><p class="text-sm text-gray-500 whitespace-nowrap">น้ำหนัก ${i.weight}</p></div>
+        <p class="text-gray-600 text-sm mb-2">${e(i.detail)}</p>
+        <p class="mb-2">คะแนนประเมินตนเอง: <b>${selfScore(ev.id, i.id) ?? '-'}</b></p>
+        <ul class="list-disc pl-6 mb-3 text-sm">${evidenceItems(ev.id, i.id, false)}</ul>
+        <label class="label">คะแนนที่ให้</label>
+        ${scoreOptions(i.eval_type, comScore(a.id, i.id), 'cs-' + i.id, locked)}
+      </div>`).join('')}
+    <div class="card">
+      <label class="label">ความคิดเห็นสรุป</label>
+      <textarea id="comment" rows="3" class="input mb-3" ${locked ? 'disabled' : ''}>${e(a.overall_comment)}</textarea>
+      ${locked ? '' : `<button onclick="A.saveDraft(${a.id})" class="btn">บันทึกร่าง</button>`}
+    </div>
+    <div class="card">
+      <p class="font-bold text-blue-800 mb-2">ลายเซ็น</p>
+      ${a.signature ? `<p class="mb-3 text-sm">แนบแล้ว: <span class="badge">${e(a.signature)}</span></p>` : ''}
+      ${locked ? '' : `<div class="flex gap-2 items-center"><input id="signature" type="file" accept=".png,.jpg,.jpeg" class="input" /><button onclick="A.uploadSignature(${a.id})" class="btn-light whitespace-nowrap">อัปโหลด</button></div>`}
+    </div>
+    ${msgs()}
+    ${locked ? '<p class="msg-ok">ยืนยันผลแล้ว แก้ไขไม่ได้</p>' : `<button onclick="A.confirmResult(${a.id})" class="btn">ยืนยันและส่งผล</button>`}
+  </div>`;
+}
+
+function evidenceItems(eid, iid, canDelete) {
+  const list = db.evidences.filter((x) => x.evaluatee_id === eid && x.indicator_id === iid);
+  if (!list.length) return '<li class="text-gray-400">ไม่มีหลักฐาน</li>';
+  return list.map((x) => `<li>${e(x.detail)}
+    ${x.file ? `<span class="badge ml-2">${e(x.file)}</span>` : ''}
+    ${x.url ? `<a href="${e(x.url)}" target="_blank" class="link ml-2">เปิดลิงก์</a>` : ''}
+    ${canDelete ? `<button onclick="A.removeEvidence(${x.id})" class="link-red ml-2">ลบ</button>` : ''}</li>`).join('');
+}
+
+// ===== หน้ากรรมการ: ดูผล =====
+function ResultView() {
+  const a = db.assignments.find((x) => x.id === state.params.id);
+  const ev = user(a.evaluatee_id);
+  return `
+  <div class="page">
+    <button onclick="A.go('committee-list')" class="link">← รายชื่อ</button>
+    <h1 class="title mt-2">ผลการประเมิน: ${e(ev.full_name)} <span class="badge align-middle">${statusText[a.status]}</span></h1>
+    <div class="overflow-x-auto"><table class="tbl mb-4">
+      <thead><tr><th>ตัวชี้วัด</th><th>น้ำหนัก</th><th>คะแนนตนเอง</th><th>คะแนนที่ให้</th><th>คะแนนถ่วง</th></tr></thead>
+      <tbody>
+        ${topicIndicators(a.topic_id).map((i) => { const s = comScore(a.id, i.id); return `<tr><td>${e(i.name)}</td><td>${i.weight}</td>
+          <td>${selfScore(ev.id, i.id) ?? '-'}</td><td>${s ?? '-'}</td><td>${s === null ? '-' : weighted(i, s)}</td></tr>`; }).join('')}
+        <tr class="font-bold"><td colspan="4">ร้อยละรวม</td><td>${totalPercent(a)}%</td></tr>
+      </tbody>
+    </table></div>
+    <div class="card"><p><b>ความคิดเห็น:</b> ${e(a.overall_comment) || '-'}</p>
+      ${a.signature ? `<p class="mt-2 text-sm">ลายเซ็น: <span class="badge">${e(a.signature)}</span></p>` : ''}</div>
+  </div>`;
+}
+
+// ===== หน้าผู้รับการประเมิน: ตัวชี้วัดของฉัน =====
+function EvaIndicatorsView() {
+  const me = state.user.id;
+  const topic = openTopic();
+  const items = topicIndicators(topic.id);
+  const done = items.filter((i) => selfScore(me, i.id) !== null).length;
+  const percent = items.length ? Math.round((done / items.length) * 100) : 0;
+  const mark = (okay, text) => `<span class="${okay ? 'text-green-700' : 'text-gray-400'}">✓ ${text}</span>`;
+  return `
+  <div class="page">
+    <h1 class="title">ตัวชี้วัดของฉัน</h1>
+    <p class="text-gray-600 mb-3">${e(topic.title)}</p>
+    <div class="card flex items-center gap-4">
+      <span class="whitespace-nowrap">บันทึกแล้ว ${percent}%</span>
+      <div class="bg-blue-100 rounded h-3 flex-1"><div class="bg-blue-600 rounded h-3" style="width:${percent}%"></div></div>
+      <button onclick="A.go('eva-print')" class="btn-light whitespace-nowrap">Export PDF</button>
+    </div>
+    ${msgs()}
+    ${items.map((i) => {
+      const evs = db.evidences.filter((x) => x.evaluatee_id === me && x.indicator_id === i.id);
+      const s = selfScore(me, i.id);
+      return `<div class="card">
+        <div class="flex justify-between gap-4"><p class="font-bold text-blue-800">${e(i.name)}</p><p class="text-sm text-gray-500 whitespace-nowrap">น้ำหนัก ${i.weight}</p></div>
+        <p class="text-sm text-gray-600">${e(i.detail)} · หลักฐาน: ${e(i.evidence_note)}</p>
+        <p class="text-sm my-2">${mark(evs.length, 'มีรายละเอียด')} · ${mark(evs.some((x) => x.file || x.url), 'มีไฟล์/ลิงก์')} · ${mark(s !== null, 'มีคะแนนตนเอง')}</p>
+        <div class="flex flex-wrap gap-2 items-center mb-3">
+          <span class="text-sm">คะแนนตนเอง</span>
+          ${scoreOptions(i.eval_type, s, 'ss-' + i.id, false)}
+          <button onclick="A.saveScore(${i.id})" class="btn">บันทึกคะแนน</button>
+        </div>
+        <ul class="list-disc pl-6 mb-3 text-sm">${evidenceItems(me, i.id, true)}</ul>
+        <div class="grid gap-2 sm:grid-cols-4 bg-blue-50 rounded p-3">
+          <input id="ev-d-${i.id}" placeholder="รายละเอียดผลงาน" class="input sm:col-span-2" />
+          <input id="ev-u-${i.id}" placeholder="URL (ถ้ามี)" class="input" />
+          <input id="ev-f-${i.id}" type="file" accept=".pdf,.jpg,.jpeg,.png" class="input" />
+          <div class="sm:col-span-4"><button onclick="A.addEvidence(${i.id})" class="btn">เพิ่มรายการ</button></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ===== หน้าผู้รับการประเมิน: ข้อมูลส่วนตัว =====
+function ProfileView() {
+  const u = state.user;
+  const input = (id, label) => `<label class="label">${label}</label><input id="${id}" value="${e(u[id])}" class="input mb-3" />`;
+  return `
+  <div class="page max-w-md">
+    <h1 class="title">ข้อมูลส่วนตัว</h1>
+    <form onsubmit="A.saveProfile(event)" class="card">
+      ${input('full_name', 'ชื่อ-สกุล')}${input('email', 'อีเมล')}${input('phone', 'โทรศัพท์')}${input('position', 'ตำแหน่ง')}
+      ${msgs()}
+      <button class="btn">บันทึก</button>
+    </form>
+  </div>`;
+}
+
+// ===== หน้าผู้รับการประเมิน: ความคิดเห็นกรรมการ =====
+function CommentsView() {
+  const rows = db.assignments.filter((a) => a.evaluatee_id === state.user.id);
+  return `
+  <div class="page">
+    <h1 class="title">ความคิดเห็นของกรรมการ</h1>
+    ${rows.map((c) => `<div class="card">
+      <p class="font-bold text-blue-800">${e(user(c.committee_id)?.full_name)} (${roleText[c.committee_role]}) <span class="badge ml-2">${statusText[c.status]}</span></p>
+      <p class="text-gray-700 mt-1">${e(c.overall_comment) || 'ยังไม่มีความคิดเห็น'}</p></div>`).join('')}
+    ${rows.length ? '' : '<p class="text-gray-500">ยังไม่มีกรรมการ</p>'}
+  </div>`;
+}
+
+// ===== หน้าผู้รับการประเมิน: พิมพ์ / PDF =====
+function PrintView() {
+  const me = state.user;
+  const topic = openTopic();
+  return `
+  <div class="page bg-white">
+    <div class="no-print mb-4 flex gap-2">
+      <button onclick="A.go('eva-indicators')" class="btn-light">← กลับ</button>
+      <button onclick="A.print()" class="btn">Export PDF</button>
+    </div>
+    ${msgs()}
+    <h1 class="text-xl font-bold text-center mb-4">แบบรายงานการประเมินตนเอง</h1>
+    <p>${e(topic.title)}</p>
+    <p class="mb-4">${e(me.full_name)} ตำแหน่ง ${e(me.position)}</p>
+    <table class="w-full border-collapse">
+      <thead><tr><th class="border p-2 text-left">ตัวชี้วัด</th><th class="border p-2">น้ำหนัก</th><th class="border p-2">คะแนนตนเอง</th><th class="border p-2 text-left">รายละเอียด/หลักฐาน</th></tr></thead>
+      <tbody>${topicIndicators(topic.id).map((i) => `<tr><td class="border p-2">${e(i.name)}</td><td class="border p-2 text-center">${i.weight}</td>
+        <td class="border p-2 text-center">${selfScore(me.id, i.id) ?? '-'}</td>
+        <td class="border p-2">${db.evidences.filter((x) => x.evaluatee_id === me.id && x.indicator_id === i.id).map((x) => `<div>${e(x.detail)}</div>`).join('')}</td></tr>`).join('')}</tbody>
+    </table>
+    <p class="mt-12">ลงชื่อ ............................................ ผู้รับการประเมิน</p>
+  </div>`;
+}
+
+// ===== โครงหน้า (เหมือน App.vue) =====
+function Navbar() {
+  const u = state.user;
+  const links = {
+    admin: [['admin-dashboard', 'Dashboard'], ['admin-users', 'ผู้ใช้'], ['admin-topics', 'หัวข้อ/ตัวชี้วัด'], ['admin-assignments', 'มอบหมายกรรมการ'], ['admin-reports', 'รายงาน']],
+    committee: [['committee-list', 'รายชื่อที่ต้องประเมิน']],
+    evaluatee: [['eva-indicators', 'ตัวชี้วัดของฉัน'], ['eva-comments', 'ความคิดเห็นกรรมการ'], ['eva-profile', 'ข้อมูลส่วนตัว']],
+  }[u.role];
+  return `
+  <nav class="bg-blue-700 text-white no-print">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex flex-wrap items-center gap-4">
+      <span class="font-bold">ระบบประเมินบุคลากร</span>
+      ${u.must ? '' : links.map(([v, t]) => `<button onclick="A.go('${v}')" class="${state.view === v ? 'underline underline-offset-4' : ''} hover:underline cursor-pointer">${t}</button>`).join('')}
+      <span class="ml-auto text-blue-100 text-sm">${e(u.full_name)}</span>
+      <button onclick="A.logout()" class="bg-white text-blue-700 rounded px-3 py-1 text-sm cursor-pointer">ออกจากระบบ</button>
+    </div>
+  </nav>`;
+}
+
+function HintBar() {
+  const [file, api] = hints[state.view] || ['', ''];
+  return `
+  <div class="no-print bg-white border-b border-blue-100 text-xs text-gray-600">
+    <div class="max-w-5xl mx-auto px-6 py-2 flex flex-wrap gap-x-4 gap-y-1">
+      <span>ไฟล์: <code class="text-blue-800">src/${file}</code></span>
+      <span>API: <code class="text-blue-800">${api}</code></span>
+      <span class="ml-auto text-gray-400">mockup · ข้อมูลจำลองในเบราว์เซอร์ รีเฟรชแล้วกลับค่าเดิม</span>
+    </div>
+  </div>`;
+}
+
+function FlowGuide() {
+  const steps = [
+    ['admin', 'สร้างหัวข้อ + ตัวชี้วัด แล้วเพิ่มผู้ใช้ และมอบหมายกรรมการ'],
+    ['eva1', 'ให้คะแนนตนเอง แนบหลักฐาน ดูแถบ % เพิ่มขึ้น แล้ว Export PDF'],
+    ['com1', 'เปิดรายชื่อ → ประเมิน สมชาย → ให้คะแนนครบ → บันทึกร่าง → แนบลายเซ็น → ยืนยัน'],
+    ['admin', 'ดู Dashboard กับรายงานรายบุคคล ว่าคะแนนและสถานะเปลี่ยนตาม'],
+    ['eva1', 'เปิด ความคิดเห็นกรรมการ เห็นความเห็นที่ com1 เขียน'],
+  ];
+  return `
+  <details class="no-print max-w-5xl mx-auto px-6 pt-4">
+    <summary class="text-sm text-blue-800 cursor-pointer">โฟลว์การทดลองใช้ (5 ขั้น)</summary>
+    <ol class="list-decimal pl-6 mt-2 text-sm text-gray-700 space-y-1">
+      ${steps.map(([u, t]) => `<li><span class="badge mr-1">${u}</span>${t}</li>`).join('')}
+    </ol>
+  </details>`;
+}
+
+function ConfirmBox() {
+  if (!state.ask) return '';
+  return `
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-6 z-10">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+      <p class="mb-4">${e(state.ask.text)}</p>
+      <div class="flex gap-2 justify-end">
+        <button onclick="A.askNo()" class="btn-light">ยกเลิก</button>
+        <button onclick="A.askYes()" class="btn">ตกลง</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+const views = {
+  changepw: ChangePasswordView,
+  'admin-dashboard': DashboardView, 'admin-users': UsersView, 'admin-topics': TopicsView, 'admin-indicators': IndicatorsView,
+  'admin-assignments': AssignmentsView, 'admin-reports': ReportsView,
+  'committee-list': CommitteeListView, 'committee-evaluate': EvaluateView, 'committee-result': ResultView,
+  'eva-indicators': EvaIndicatorsView, 'eva-profile': ProfileView, 'eva-comments': CommentsView, 'eva-print': PrintView,
+};
+
+function render() {
+  const app = document.getElementById('app');
+  if (!state.user) { app.innerHTML = LoginView(); return; }
+  app.innerHTML = Navbar() + HintBar() + FlowGuide() + views[state.view]() + ConfirmBox();
+}
+
+// ===== การกระทำ (เทียบได้กับฟังก์ชันใน <script setup> และ API ฝั่ง backend) =====
+function ask(text, fn) { state.ask = { text, fn }; render(); }
+
+window.A = {
+  fill(u) { document.getElementById('username').value = u; document.getElementById('password').value = '1234'; },
+  login(ev) {
+    ev.preventDefault();
+    const u = val('username'), p = document.getElementById('password').value;
+    if (!u || !p) return fail('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+    const found = db.users.find((x) => x.username === u && x.password === p);
+    if (!found) return fail('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    state.user = found; state.error = '';
+    A.go(found.must ? 'changepw' : homeOf(found.role));
+  },
+  logout() { state.user = null; state.error = ''; state.message = ''; render(); },
+  go(view, params = {}) {
+    state.view = view; state.params = params; state.error = ''; state.message = ''; state.editingId = null; state.evalType = null;
+    render(); window.scrollTo(0, 0);
+  },
+  changePassword(ev) {
+    ev.preventDefault();
+    const old = document.getElementById('old').value, nw = document.getElementById('new').value, cf = document.getElementById('confirm').value;
+    if (nw.length < 6) return fail('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร');
+    if (nw !== cf) return fail('ยืนยันรหัสผ่านไม่ตรงกัน');
+    if (old !== state.user.password) return fail('รหัสผ่านเดิมไม่ถูกต้อง');
+    state.user.password = nw; state.user.must = 0;
+    A.go(homeOf(state.user.role));
+  },
+  reset() { state.editingId = null; state.evalType = null; render(); },
+  edit(id) { state.editingId = id; state.evalType = null; state.error = ''; state.message = ''; render(); },
+
+  // ผู้ใช้
+  changeRole(r) { state.role = r; state.editingId = null; state.error = ''; state.message = ''; render(); },
+  saveUser(ev) {
+    ev.preventDefault();
+    const f = { username: val('username'), full_name: val('full_name'), email: val('email'), phone: val('phone'), position: val('position') };
+    if (!f.username || !f.full_name) return fail('กรุณากรอกชื่อผู้ใช้และชื่อ-สกุล');
+    if (db.users.some((u) => u.username === f.username && u.id !== state.editingId)) return fail('ชื่อผู้ใช้นี้มีแล้ว');
+    if (state.editingId) { Object.assign(user(state.editingId), f); state.editingId = null; return ok('แก้ไขข้อมูลสำเร็จ'); }
+    db.users.push({ id: nextId++, ...f, password: '1234', role: state.role, must: 1 });
+    ok('เพิ่มผู้ใช้สำเร็จ');
+  },
+  resetPassword(id) {
+    const u = user(id);
+    ask(`รีเซ็ตรหัสผ่านของ "${u.full_name}" เป็น 1234 ใช่ไหม`, () => { u.password = '1234'; u.must = 1; ok('รีเซ็ตรหัสผ่านเป็น 1234 แล้ว'); });
+  },
+  removeUser(id) {
+    const u = user(id);
+    ask(`ลบ "${u.full_name}" ใช่ไหม`, () => {
+      db.users = db.users.filter((x) => x.id !== id);
+      db.assignments = db.assignments.filter((a) => a.evaluatee_id !== id && a.committee_id !== id);
+      ok('ลบผู้ใช้แล้ว');
+    });
+  },
+
+  // หัวข้อ
+  saveTopic(ev) {
+    ev.preventDefault();
+    const f = { title: val('title'), description: val('description'), start_date: val('start_date'), end_date: val('end_date') };
+    if (!f.title || !f.start_date || !f.end_date) return fail('กรุณากรอกชื่อหัวข้อ วันเริ่ม และวันสิ้นสุด');
+    if (f.end_date < f.start_date) return fail('วันสิ้นสุดต้องไม่ก่อนวันเริ่ม');
+    if (state.editingId) { Object.assign(db.topics.find((t) => t.id === state.editingId), f); state.editingId = null; return ok('แก้ไขหัวข้อสำเร็จ'); }
+    db.topics.push({ id: nextId++, ...f });
+    ok('เพิ่มหัวข้อสำเร็จ');
+  },
+  removeTopic(id) {
+    const t = db.topics.find((x) => x.id === id);
+    ask(`ลบ "${t.title}" ใช่ไหม`, () => { db.topics = db.topics.filter((x) => x.id !== id); db.indicators = db.indicators.filter((i) => i.topic_id !== id); ok('ลบหัวข้อแล้ว'); });
+  },
+
+  // ตัวชี้วัด
+  pickType(v) { state.evalType = v; const keep = ['name', 'detail', 'weight', 'evidence_note'].map((k) => [k, val(k)]); render(); keep.forEach(([k, v2]) => (document.getElementById(k).value = v2)); },
+  saveIndicator(ev) {
+    ev.preventDefault();
+    const f = { name: val('name'), detail: val('detail'), weight: Number(val('weight')), eval_type: val('eval_type'), evidence_note: val('evidence_note') };
+    if (!f.name || !(f.weight > 0)) return fail('กรุณากรอกชื่อตัวชี้วัด และน้ำหนักต้องมากกว่า 0');
+    if (state.editingId) { Object.assign(db.indicators.find((i) => i.id === state.editingId), f); state.editingId = null; state.evalType = null; return ok('แก้ไขตัวชี้วัดสำเร็จ'); }
+    db.indicators.push({ id: nextId++, topic_id: state.params.topicId, ...f });
+    state.evalType = null; ok('เพิ่มตัวชี้วัดสำเร็จ');
+  },
+  removeIndicator(id) {
+    const i = db.indicators.find((x) => x.id === id);
+    ask(`ลบ "${i.name}" ใช่ไหม`, () => { db.indicators = db.indicators.filter((x) => x.id !== id); ok('ลบตัวชี้วัดแล้ว'); });
+  },
+
+  // มอบหมาย
+  pickTopic(v) { state.topicId = Number(v); state.reportId = ''; state.error = ''; state.message = ''; render(); },
+  saveAssignment(ev) {
+    ev.preventDefault();
+    const eid = Number(val('evaluatee_id')), cid = Number(val('committee_id')), role = val('committee_role');
+    if (!eid || !cid) return fail('กรุณาเลือกผู้รับการประเมินและกรรมการ');
+    if (db.assignments.some((a) => a.topic_id === state.topicId && a.evaluatee_id === eid && a.committee_id === cid)) return fail('มอบหมายคู่นี้ไปแล้ว');
+    db.assignments.push({ id: nextId++, topic_id: state.topicId, evaluatee_id: eid, committee_id: cid, committee_role: role, status: 'pending', overall_comment: '', signature: '' });
+    ok('มอบหมายสำเร็จ');
+  },
+  changeCommitteeRole(id, role) { db.assignments.find((a) => a.id === id).committee_role = role; ok('เปลี่ยนบทบาทแล้ว'); },
+  removeAssignment(id) { ask('ยกเลิกการมอบหมายนี้ใช่ไหม', () => { db.assignments = db.assignments.filter((a) => a.id !== id); ok('ยกเลิกการมอบหมายแล้ว'); }); },
+  pickReport(v) { state.reportId = v; render(); },
+
+  // กรรมการ
+  saveDraft(aid) {
+    const a = db.assignments.find((x) => x.id === aid);
+    topicIndicators(a.topic_id).forEach((i) => {
+      const v = val('cs-' + i.id);
+      db.committeeScores = db.committeeScores.filter((s) => !(s.assignment_id === aid && s.indicator_id === i.id));
+      if (v !== '') db.committeeScores.push({ assignment_id: aid, indicator_id: i.id, score: Number(v) });
+    });
+    a.overall_comment = document.getElementById('comment').value.trim();
+    a.status = 'draft';
+    ok('บันทึกร่างสำเร็จ');
+  },
+  uploadSignature(aid) {
+    const file = document.getElementById('signature').files[0];
+    if (!file) return fail('กรุณาเลือกไฟล์ลายเซ็น');
+    db.assignments.find((x) => x.id === aid).signature = file.name;
+    ok('แนบลายเซ็นแล้ว');
+  },
+  confirmResult(aid) {
+    const a = db.assignments.find((x) => x.id === aid);
+    const inds = topicIndicators(a.topic_id);
+    const done = inds.filter((i) => comScore(aid, i.id) !== null).length;
+    if (done < inds.length) return fail(`ยังให้คะแนนไม่ครบ (${done}/${inds.length}) กดบันทึกร่างก่อน`);
+    ask('ยืนยันแล้วจะแก้ไขไม่ได้อีก ยืนยันไหม', () => { a.status = 'confirmed'; ok('ยืนยันผลการประเมินสำเร็จ'); });
+  },
+
+  // ผู้รับการประเมิน
+  saveScore(iid) {
+    const v = val('ss-' + iid);
+    if (v === '') return fail('กรุณาเลือกคะแนน');
+    const me = state.user.id;
+    db.selfScores = db.selfScores.filter((s) => !(s.evaluatee_id === me && s.indicator_id === iid));
+    db.selfScores.push({ evaluatee_id: me, indicator_id: iid, score: Number(v) });
+    ok('บันทึกคะแนนสำเร็จ');
+  },
+  addEvidence(iid) {
+    const detail = val('ev-d-' + iid), url = val('ev-u-' + iid), file = document.getElementById('ev-f-' + iid).files[0];
+    if (!detail) return fail('กรุณากรอกรายละเอียดผลงาน');
+    if (file && file.size > 5 * 1024 * 1024) return fail('ไฟล์ต้องไม่เกิน 5 MB');
+    db.evidences.push({ id: nextId++, evaluatee_id: state.user.id, indicator_id: iid, detail, url, file: file ? file.name : '' });
+    ok('เพิ่มรายการสำเร็จ');
+  },
+  removeEvidence(id) { ask('ลบรายการนี้ใช่ไหม', () => { db.evidences = db.evidences.filter((x) => x.id !== id); ok('ลบรายการแล้ว'); }); },
+  saveProfile(ev) {
+    ev.preventDefault();
+    const f = { full_name: val('full_name'), email: val('email'), phone: val('phone'), position: val('position') };
+    if (!f.full_name) return fail('กรุณากรอกชื่อ-สกุล');
+    if (!/^\S+@\S+\.\S+$/.test(f.email)) return fail('รูปแบบอีเมลไม่ถูกต้อง');
+    Object.assign(state.user, f);
+    ok('บันทึกข้อมูลสำเร็จ');
+  },
+  print() {
+    try { window.print(); } catch (err) { /* บางที่ห้ามสั่งพิมพ์ */ }
+    state.message = 'ถ้าหน้าต่างพิมพ์ไม่ขึ้น ให้กด Ctrl + P แล้วเลือก Save as PDF'; render();
+  },
+
+  // กล่องยืนยัน (แทน confirm() ของเบราว์เซอร์)
+  askYes() { const fn = state.ask.fn; state.ask = null; fn(); },
+  askNo() { state.ask = null; render(); },
+};
+
+render();
+}
+</script>
+</body>
+</html>
